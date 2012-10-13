@@ -8,7 +8,6 @@
 #define _LIBCOMMON_H_
 
 #define DEBUG
-
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
