@@ -1,0 +1,17 @@
+*.s19
+*.o
+*.tdt
+*.stg
+*.abs
+*.map
+*.elf
+*.hwl
+*.ini
+*.hwc
+*.mem
+*.bbl
+*.prm
+*.cmd
+*.exe
+*.txt
+*.lnk
