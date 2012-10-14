@@ -15,7 +15,6 @@ typedef uint rti_time ;
 typedef int timer_id;
 
 timer_id rti_mktimer(rti_time t);
-#define 
 
 #define RTI_ONCE 0
 #define RTI_CANCEL 0
