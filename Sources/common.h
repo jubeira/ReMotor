@@ -7,7 +7,6 @@
 #ifndef _LIBCOMMON_H_
 #define _LIBCOMMON_H_
 
-#define DEBUG
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
@@ -34,8 +33,8 @@ enum {E_OK, E_NOMEM, E_BADCFG, E_GRAPHIC, E_DONEHELP, E_BADARGS, E_NOTREADY,
 
 /*TYPEDEFS */
 
-typedef unsigned s8 u8;
-typedef s8 s8;
+typedef unsigned char u8;
+typedef char s8;
 typedef unsigned int u16;
 typedef int s16;
 
@@ -53,10 +52,10 @@ typedef union {
 	};
 } bit;
 
-typedef enum{
-	FALSE = 0,
-	TRUE
-} bool;
+ typedef enum{
+	_FALSE = 0,
+	_TRUE
+}bool;
 
 /* puertos */
 

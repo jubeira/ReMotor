@@ -3,6 +3,8 @@
 *	****** Codigo generado automaticamente. NO EDITAR ********
 */
 
+#include "../common.h"
+
 #ifndef _ASCII_7_TBL_
 #define _ASCII_7_TBL_
 

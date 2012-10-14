@@ -53,7 +53,7 @@ void rti_init()
 		rti_tbl[i].f = NULL;
 	
 	RTICTL = RTI_DIV;
-	CRGs16_RTIE = 1;
+	CRGINT_RTIE = 1;
 	rti_reenable();
 }
 
@@ -100,7 +100,7 @@ void rti_cancel(timer_id n)
 	rti_tbl[n].cnt = RTI_CANCEL;
 }
 
-void s16errupt rti_srv(void)
+void interrupt rti_srv(void)
 {
 	s16 i;
 
