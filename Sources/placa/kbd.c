@@ -11,7 +11,6 @@
 #include "kbd.h"
 
 #define POLL_INTERVAL RTI_MS2PERIOD(100)
-#define SETTLING_TIME 1
 
 #define N_ROWS 4
 #define N_COLS 3
