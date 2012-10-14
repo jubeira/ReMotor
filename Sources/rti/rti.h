@@ -11,8 +11,8 @@
 #define RTI_ALWAYS 1
 #define RTI_NOW 1
 
-typedef uint rti_time ;
-typedef int timer_id;
+typedef u16 rti_time ;
+typedef s16 timer_id;
 
 timer_id rti_mktimer(rti_time t);
 
@@ -51,13 +51,13 @@ timer_id rti_register(rti_time (*f)(void *, rti_time), void *data,
 	 */
 
 timer_id rti_register2(rti_time (*f)(void *, rti_time), void *data, 
-				rti_time period, rti_time delay, int protect);
+				rti_time period, rti_time delay, s16 protect);
 	/* Esta función es como rti_register, con la diferencia que, en caso de
 	 * auto-cancelación, si 'protect' está en RTI_PROTECT, el timer queda en
 	 * la tabla (inactivo) hasta que el usuario le da un rti_cancel
 	 */
 	
-rti_time rti_set_period(int n, rti_time period);
+rti_time rti_set_period(s16 n, rti_time period);
 	/* n : id del timer, period: nuevo periodo */
 	
 void rti_cancel(timer_id n);

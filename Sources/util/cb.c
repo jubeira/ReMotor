@@ -5,14 +5,9 @@
 
 #include "../common.h"
 #include "cb.h"
-/*
-typedef int sint;
-typedef char schar;
 
-#define CB_LENGTH 32
-*/
 
-cbuf cb_create(u8 *mem, char len)
+cbuf cb_create(u8 *mem, s8 len)
 {
 	cbuf r;
 	
@@ -24,7 +19,7 @@ cbuf cb_create(u8 *mem, char len)
 	return r;
 }
 
-int cb_push(cbuf* buffer, u8 data) 
+s16 cb_push(cbuf* buffer, u8 data) 
 {
 	if (buffer->status == CB_FULL)
 		return -E_NOMEM;
@@ -42,7 +37,7 @@ int cb_push(cbuf* buffer, u8 data)
 	return -E_OK;
 }
 
-int cb_pop(cbuf* buffer) 
+s16 cb_pop(cbuf* buffer) 
 {
 	u8 readVal;
 	
@@ -62,29 +57,10 @@ int cb_pop(cbuf* buffer)
 	return readVal;
 }
 
-/*
-sint cb_flush(cbuf* buffer) 
-{
-	sint erasedSize;
-	if ((buffer->w > buffer->r) && buffer->status == CB_READY){	
-		erasedSize = buffer->w - buffer->r;
-	} else if ((buffer->w < buffer->r) && buffer->status == CB_READY){
-		erasedSize = CB_LENGTH - (buffer->r - buffer->w);
-	}  else if (((buffer->w == buffer->r) && buffer->status == CB_FULL) {
-		erasedSize = 0;
-	} else {
-		return -E_OTHER;
-	}
-	
-	buffer->r = buffer->w;
-	buffer->status = CB_EMPTY;
-	return erasedSize;
-}
-*/
 
-int cb_flush(cbuf* buffer) 
+s16 cb_flush(cbuf* buffer) 
 {
-	int erasedSize;
+	s16 erasedSize;
 	
 	if (buffer->status == CB_READY) {
 		if(buffer->w > buffer->r){

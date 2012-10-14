@@ -27,13 +27,13 @@
 
 /* */
 
-char con_inp_buf[DISP_SIZE];
-static int print_mode;
-static int cursor;
-int input_ready;
-static int readfrom;
-static int cursor_enabled;
-static int Gtimeout;
+s8 con_inp_buf[DISP_SIZE];
+static s16 print_mode;
+static s16 cursor;
+s16 input_ready;
+static s16 readfrom;
+static s16 cursor_enabled;
+static s16 Gtimeout;
 static timer_id timeout_timer;
 static rti_time t_out;
 
@@ -64,7 +64,7 @@ void con_clear()
 	input_ready = 0;
 }
 
-static void low_setattr(u8 attrs, int mode, int n)
+static void low_setattr(u8 attrs, s16 mode, s16 n)
 {
 	switch (mode) {
 	case ATT_SET:
@@ -86,9 +86,9 @@ static void low_setattr(u8 attrs, int mode, int n)
 	}
 }
 
-static int low_getchar(void)
+static s16 low_getchar(void)
 {
-	int c;
+	s16 c;
 	
 	if (input_ready) {
 		if (readfrom == cursor) {
@@ -104,9 +104,9 @@ static int low_getchar(void)
 	return c;
 }
 
-static int low_putcursor(void)
+static s16 low_putcursor(void)
 {
-	int r = 0;
+	s16 r = 0;
 	
 	if (cursor < DISP_SIZE && cursor_enabled) {
 		disp_ram[cursor] = CURSOR_CHAR;
@@ -117,9 +117,9 @@ static int low_putcursor(void)
 	return r;
 }
 
-static int low_rmcursor(void)
+static s16 low_rmcursor(void)
 {
-	int r = 0;
+	s16 r = 0;
 	
 	if (cursor < DISP_SIZE) {
 		disp_ram[cursor] = CHAR_NOTHING;
@@ -130,9 +130,9 @@ static int low_rmcursor(void)
 	return r;
 }
 
-static int low_putchar(char c)
+static s16 low_putchar(s8 c)
 {
-	int r = 0;
+	s16 r = 0;
 	
 	if (cursor < DISP_SIZE) {
 		con_inp_buf[cursor] = c;
@@ -146,9 +146,9 @@ static int low_putchar(char c)
 	return r;
 }
 
-static int low_backspace(void)
+static s16 low_backspace(void)
 {
-	int r = 0;
+	s16 r = 0;
 	
 	if (cursor > 0) {
 		if (cursor < DISP_SIZE)
@@ -173,17 +173,17 @@ static void timeout_restart()
 	}
 }
 
-void con_setattr(u8 attrs, int mode)
+void con_setattr(u8 attrs, s16 mode)
 {
 	if (cursor > 0)
 		low_setattr(attrs, mode, cursor-1);
 }
 
-int con_putchar(char c) { return low_putchar(c); }
+s16 con_putchar(s8 c) { return low_putchar(c); }
 
-int con_puts(char *s)
+s16 con_puts(s8 *s)
 {
-	char *s2 = s;
+	s8 *s2 = s;
 	
 	for (/* */ ; (*s2 != TERM) && ((s2-s) < DISP_SIZE); s2++)
 		con_putchar(*s2);
@@ -191,14 +191,14 @@ int con_puts(char *s)
 	return s2-s;
 }
 
-int con_getchar()
+s16 con_getchar()
 {
 	return con_getchar_timed(0);
 }
 
-char *con_gets_timed(char *s, rti_time timeout)
+s8 *con_gets_timed(s8 *s, rti_time timeout)
 {
-	char *r = NULL;
+	s8 *r = NULL;
 	
 	if (timeout != 0) {
 		t_out = timeout;
@@ -208,7 +208,7 @@ char *con_gets_timed(char *s, rti_time timeout)
 	
 	while (timeout ==0 || !Gtimeout) {
 		if (input_ready) {
-			int n;
+			s16 n;
 			
 			n = cursor - readfrom;
 			memcpy(s, con_inp_buf + readfrom , n);
@@ -222,12 +222,12 @@ char *con_gets_timed(char *s, rti_time timeout)
 	return r;	
 }
 
-char *con_gets(char *s)
+s8 *con_gets(s8 *s)
 {
 	return con_gets_timed(s, 0);
 }
 
-void con_cursor_enable(int v)
+void con_cursor_enable(s16 v)
 {
 	cursor_enabled = v;
 	if (cursor_enabled)
@@ -238,7 +238,7 @@ void con_cursor_enable(int v)
 u8 b = 50;
 rti_time con_service(void *dummy, rti_time pw)
 {
-	int c;
+	s16 c;
 		
 	if (!input_ready && (c = kb_read()) >= 0) {
 		timeout_restart();
@@ -261,17 +261,17 @@ rti_time con_service(void *dummy, rti_time pw)
 	return pw;
 }
 
-int con_nchars(void)
+s16 con_nchars(void)
 {	/* cantidad de caracteres en el buffer */
 	return cursor - readfrom;
 }
 
-void con_output_mode(int m)
+void con_output_mode(s16 m)
 {
 	print_mode = m;
 }
 
-void con_input_enable(int v)
+void con_input_enable(s16 v)
 {
 	if (v == BLOCK_INPUT) {
 		con_cursor_enable(0);

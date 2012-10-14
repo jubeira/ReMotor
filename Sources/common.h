@@ -7,7 +7,6 @@
 #ifndef _LIBCOMMON_H_
 #define _LIBCOMMON_H_
 
-#define DEBUG
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
@@ -35,7 +34,10 @@ enum {E_OK, E_NOMEM, E_BADCFG, E_GRAPHIC, E_DONEHELP, E_BADARGS, E_NOTREADY,
 /*TYPEDEFS */
 
 typedef unsigned char u8;
-typedef unsigned int uint;
+typedef char s8;
+typedef unsigned int u16;
+typedef int s16;
+
 typedef union {
 	u8 v;
 	struct {
@@ -49,6 +51,11 @@ typedef union {
 		int b7:1;
 	};
 } bit;
+
+ typedef enum{
+	_FALSE = 0,
+	_TRUE
+}bool;
 
 /* puertos */
 

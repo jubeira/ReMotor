@@ -21,7 +21,7 @@
 #define DIM2BRIGHT(di) ((di)<<(CHAR_BIT - DIM_BITS))
 
 #define LED_BLINKING	1
-#define	LED_NOT_BLINKING	(!LED_BLINKING)
+#define LED_NOT_BLINKING	(!LED_BLINKING)
 
 #define LED_CTL(v) {LED_PORT = (v)? LED_LOGIC1 : LED_LOGIC0;}
 
@@ -110,7 +110,7 @@ rti_time led_pwm_ctrl(void *_data, rti_time pw)
 	return r;
 }
 
-static void led_fancy_enter(int end_dim)
+static void led_fancy_enter(s16 end_dim)
 {
 	led_stop();
 		
@@ -128,7 +128,7 @@ static void led_fancy_leave(rti_time dur)
 		led_fancy_cfg.stop_func = RTI_INVALID_ID;
 }
 
-void led_blink (u8 dim_on, u8 dim_off, rti_time t_on, rti_time t_off, rti_time dur, int end_dim)
+void led_blink (u8 dim_on, u8 dim_off, rti_time t_on, rti_time t_off, rti_time dur, s16 end_dim)
 {
 	led_fancy_enter(end_dim);
 	
@@ -147,7 +147,7 @@ void led_blink (u8 dim_on, u8 dim_off, rti_time t_on, rti_time t_off, rti_time d
 	led_fancy_leave(dur);
 }
 
-void led_fade (rti_time t_trans, rti_time dur, int end_dim)
+void led_fade (rti_time t_trans, rti_time dur, s16 end_dim)
 {
 	led_fancy_enter(end_dim);
 	
