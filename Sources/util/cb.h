@@ -18,19 +18,19 @@ typedef struct {
 	u8 *r;
 	u8 *w;
 	u8 len;
-	int status;
+	s16 status;
 } cbuf;
 
-cbuf cb_create(u8 *mem, char len);
+cbuf cb_create(u8 *mem, s8 len);
 
 #define ARRAY2CB(a) cb_create(a, ARSIZE(a))
 
 #define cb_status(cb)	((cb)->status)
 
-int cb_push(cbuf* buffer, u8 data);
+s16 cb_push(cbuf* buffer, u8 data);
 
-int cb_pop(cbuf* buffer);
+s16 cb_pop(cbuf* buffer);
 
-int cb_flush(cbuf* buffer);
+s16 cb_flush(cbuf* buffer);
 
 #endif /* __CB_H__ */

@@ -37,7 +37,7 @@ struct rti_cb {
 	rti_time period;
 	rti_time cnt;
 	rti_time (*f)(void *, rti_time);
-	int protect;
+	s16 protect;
 	void *data;
 };
 
@@ -45,7 +45,7 @@ static struct rti_cb rti_tbl[RTI_MAX_FCNS];
 
 void rti_init()
 {
-	int i;
+	s16 i;
 	
 	RTI_DBG_INIT();
 	
@@ -53,14 +53,14 @@ void rti_init()
 		rti_tbl[i].f = NULL;
 	
 	RTICTL = RTI_DIV;
-	CRGINT_RTIE = 1;
+	CRGs16_RTIE = 1;
 	rti_reenable();
 }
 
 timer_id rti_register2(rti_time (*f)(void *, rti_time), void *data, 
-				rti_time period, rti_time delay, int protect)
+				rti_time period, rti_time delay, s16 protect)
 {
-	int i;
+	s16 i;
 	
 	for (i = 0; i < RTI_MAX_FCNS; i++) {
 		if (rti_tbl[i].f == NULL) {
@@ -85,7 +85,7 @@ timer_id rti_register(rti_time (*f)(void *, rti_time), void *data,
 	return rti_register2(f, data, period, delay, RTI_DEFAULT_PROTECT);
 }
 
-rti_time rti_set_period(int n, rti_time period)
+rti_time rti_set_period(s16 n, rti_time period)
 {
 	rti_time old_p = rti_tbl[n].period;
 	
@@ -100,9 +100,9 @@ void rti_cancel(timer_id n)
 	rti_tbl[n].cnt = RTI_CANCEL;
 }
 
-void interrupt rti_srv(void)
+void s16errupt rti_srv(void)
 {
-	int i;
+	s16 i;
 
 	RTI_DBG_ENTER();
 

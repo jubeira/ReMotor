@@ -29,26 +29,26 @@ enum {BLOCK_INPUT, ALLOW_INPUT};
 
 void con_init(void);
 void con_clear();
-void con_input_enable(int v);
+void con_input_enable(s16 v);
 	/* BLOCK_INPUT o ALLOW_INPUT */
-void con_output_mode(int m);
+void con_output_mode(s16 m);
 	/* CON_NORMAL o CON_PASSWD */
-void con_setattr(u8 attrs, int mode);
+void con_setattr(u8 attrs, s16 mode);
 
-int con_putchar(char c);
+s16 con_putchar(s8 c);
 
-int con_puts(char *s);
+s16 con_puts(s8 *s);
 
-int con_getchar_timed(rti_time timeout);
+s16 con_getchar_timed(rti_time timeout);
 
-int con_getchar();
+s16 con_getchar();
 
-char *con_gets_timed(char *s, rti_time timeout);
+s8 *con_gets_timed(s8 *s, rti_time timeout);
 
-char *con_gets(char *s);
+s8 *con_gets(s8 *s);
 
-void con_cursor_enable(int v);
+void con_cursor_enable(s16 v);
 
-int con_nchars(void);
+s16 con_nchars(void);
 
 #endif /* __CONSOLE_H__ */

@@ -20,15 +20,15 @@
 static u8 kb_buf[KB_BUF_LEN];
 static cbuf kb_cb;
 
-static const char kb_xlate[N_ROWS][N_COLS] = {
+static const s8 kb_xlate[N_ROWS][N_COLS] = {
 	{'1', '2', '3'},
 	{'4', '5', '6'},
 	{'7', '8', '9'},
 	{KB_SPECIAL_L, '0', KB_SPECIAL_R}};
 
-static char kb_kstatus[N_ROWS][N_COLS];
-int kb_active;
-char lastkey;
+static s8 kb_kstatus[N_ROWS][N_COLS];
+s16 kb_active;
+s8 lastkey;
 
 rti_time kb_poll(void *dummy, rti_time pw);
 void kb_reserve_disp_port (u8 *DATA,u8 *CTL);
@@ -45,12 +45,12 @@ void kb_init(void)
 	rti_register(kb_poll, NULL, RTI_MS2PERIOD(100), RTI_NOW);
 }
 
-int kb_status() 
+s16 kb_status() 
 {
 	return cb_status(&kb_cb);
 }
 
-int kb_read()
+s16 kb_read()
 {
 	return cb_pop(&kb_cb);
 }
@@ -60,13 +60,13 @@ void kb_flush ()
 	cb_flush(&kb_cb);
 }
 
-static void push_key(int i, int j)
+static void push_key(s16 i, s16 j)
 {
 	lastkey = kb_xlate[i][j];
 	cb_push(&kb_cb, kb_xlate[i][j]);
 }
 
-void kb_activate(int n)
+void kb_activate(s16 n)
  {
 	 kb_active = (n);
  }
@@ -74,7 +74,7 @@ void kb_activate(int n)
  
 rti_time kb_poll(void *data, rti_time pw)
 {
-	int i, j;
+	s16 i, j;
 	u8 temp_DISP_DATA, temp_DISP_CTL;
 	
 	if (!kb_active)

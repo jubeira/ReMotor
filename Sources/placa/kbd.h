@@ -12,15 +12,15 @@
 
 #define KB_ACTIVE	1
 
-extern int kb_active;
+extern s16 kb_active;
 
 void kb_init(void);
 
-void kb_activate(int n);
+void kb_activate(s16 n);
 
-int kb_status();
+s16 kb_status();
 
-int kb_read();
+s16 kb_read();
 
 void kb_flush();
 

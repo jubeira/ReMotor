@@ -7,7 +7,7 @@
 #define _ASCII_7_TBL_
 
 #define DOT_CODE 128
-extern const char ascii_to_7[];
+extern const s8 ascii_to_7[];
 
 #endif /* _ASCII_7_TBL_ */
 /* fin del codigo generado automaticamente */

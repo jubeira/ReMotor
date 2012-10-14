@@ -34,8 +34,11 @@ enum {E_OK, E_NOMEM, E_BADCFG, E_GRAPHIC, E_DONEHELP, E_BADARGS, E_NOTREADY,
 
 /*TYPEDEFS */
 
-typedef unsigned char u8;
-typedef unsigned int uint;
+typedef unsigned s8 u8;
+typedef s8 s8;
+typedef unsigned int u16;
+typedef int s16;
+
 typedef union {
 	u8 v;
 	struct {
@@ -49,6 +52,11 @@ typedef union {
 		int b7:1;
 	};
 } bit;
+
+typedef enum{
+	FALSE = 0,
+	TRUE
+} bool;
 
 /* puertos */
 

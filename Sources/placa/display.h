@@ -19,12 +19,12 @@
 #define	DISP_BLINK			(!DISP_NO_BLINK)
 
 struct disp_att {
-        int use_dot 	:1;                                   
-        int dim		:1; //50 o 100%
-		int blink	:1;
+        s16 use_dot 	:1;                                   
+        s16 dim		:1; //50 o 100%
+		s16 blink	:1;
 };
 
-extern char disp_ram[DISP_SIZE];
+extern s8 disp_ram[DISP_SIZE];
 extern struct disp_att disp_att_ram[DISP_SIZE];
 void disp_set_blink_rate(rti_time rate);
 rti_time disp_get_blink_rate (void);

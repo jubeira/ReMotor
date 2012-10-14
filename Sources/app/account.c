@@ -17,9 +17,9 @@ struct account acc_db[USERS] =
 { "0",	""}
 };
 
-int is_valid_account(char *id, char *pw)
+s16 is_valid_account(s8 *id, s8 *pw)
 {
-	int i;
+	s16 i;
 	for (i = 0; i < USERS; i++)
 		if ((!strcmp(acc_db[i].id,id)) && (!strcmp(acc_db[i].pw,pw)))
 			return 1;
