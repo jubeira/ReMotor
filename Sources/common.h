@@ -37,6 +37,8 @@ typedef unsigned char u8;
 typedef char s8;
 typedef unsigned int u16;
 typedef int s16;
+typedef unsigned long int u32;
+typedef long int s32;
 
 typedef union {
 	u8 v;
