@@ -12,16 +12,17 @@
 #include "../common.h"
 #include "../rti/rti.h"
 
-#define DISP_SIZE	4
+#define     DISP_SIZE	4
 #define	DISP_FULL_DIM		0
-#define DISP_HALF_DIM 		(!DISP_FULL_DIM)
+#define     DISP_HALF_DIM 		(!DISP_FULL_DIM)
 #define	DISP_NO_BLINK		0
 #define	DISP_BLINK			(!DISP_NO_BLINK)
+#define SPACE	(' ')
 
 struct disp_att {
         s16 use_dot 	:1;                                   
         s16 dim		:1; //50 o 100%
-		s16 blink	:1;
+        s16 blink       	:1;
 };
 
 extern s8 disp_ram[DISP_SIZE];

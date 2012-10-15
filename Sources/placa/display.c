@@ -17,8 +17,6 @@
 
 #define CNT_DISP_ON	0
 
-#define SPACE	(' ')
-
 s8 disp_ram[DISP_SIZE];
 struct disp_att disp_att_ram[DISP_SIZE];
 

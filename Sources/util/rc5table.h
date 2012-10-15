@@ -5,7 +5,7 @@
 #ifndef _RC5_TBL_
 #define _RC5_TBL_
 
-enum = {
+enum {
 	RC5_0 = 0,
 	RC5_1,
 	RC5_2,
@@ -16,11 +16,11 @@ enum = {
 	RC5_7,
 	RC5_8,
 	RC5_9,
-	RC5_VOL_UP = 16,
+         RC5_VOL_UP = 16,
 	RC5_VOL_DOWN,
 	RC5_CHANN_UP = 32,
 	RC5_CHANN_DOWN,
-	RC5_REW = 50,
+         RC5_REW = 50,
 	RC5_FF = 52,
 	RC5_PLAY,
 	RC5_STOP	
