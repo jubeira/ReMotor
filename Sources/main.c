@@ -6,17 +6,18 @@
 #include "a7table.h"
 #include "ir.h"
 
-void init();
+void init(void);
+void test_remote(u8 remote);
 void main(void)
 {
 	init();
 	
 	while(1)
 	{
-	    u8 remote
+	    s16 remote;
 	    while ((remote = ir_read()) < 0)
-	        :
-            test_remote(remote);
+	        ;
+            test_remote((u8)remote);
 	}
 	
 }

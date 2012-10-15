@@ -1,9 +1,10 @@
 #include "common.h"
 #include "timers.h"
 #include "cb.h"
+#include "ir.h"
 
 #define BUF_LENGTH 50
-
+#define CNT_MAX 65536
 #define HBT_TIME 7112
 
 #define HBT1_MAX 7467
@@ -37,7 +38,7 @@ static cbuf cBuffer;
 void ir_init(void){
 	ic_init();
 	oc_init();
-	reset_transmission();
+	resetTransmission();
 	timer_init();
 	
 	cBuffer = cb_create(irBuffer, BUF_LENGTH);
@@ -99,8 +100,8 @@ void startTransmission(void){
 		icData.currentBit = 13;
 		icData.receivedData = 0;
 		icData.receivedData |= (1 << icData.currentBit);
-		icData.lastEdge = TC - HBT_TIME;
-		if (TC - HBT_TIME >= 0)
+		icData.lastEdge = TC1 - HBT_TIME;
+		if (TC1 - HBT_TIME >= 0)
 			icData.overflowCnt = 0;
 		else
 			icData.overflowCnt = 1;
@@ -128,7 +129,7 @@ void endTransmission(void){
 
 void interrupt timOvf_srv(void){
 	icData.overflowCnt++;
-	ocData.overflowCnt++;
+//	ocData.overflowCnt++;
 	OVF_FLAG_CLR;
 	return;
 }
