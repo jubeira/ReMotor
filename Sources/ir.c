@@ -21,7 +21,7 @@
 #define CLEAR_IC_FLAG() (TFLG1 = TFLG1_C1F_MASK)
 #define CLEAR_OC_FLAG() (TFLG1 = TFLG1_C0F_MASK)
 
-
+#include "graphics.h"
 #define RC5_TIMEOUT 37500
 
 #define PREVIOUS_BIT ((icData.receivedData & (1<< ( (u8) ( icData.currentBit+1)))) ? 1 : 0)
@@ -60,15 +60,14 @@ void ir_init(void){
 void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("timers.h")
 	u32 timeElapsed;
 	CLEAR_IC_FLAG();
-	
+
 	if (icData.running == _FALSE)
-	{
-		startTransmission();
-	}	
+		startTransmission();	
 	else
 	{
 		timeElapsed = (icData.overflowCnt*CNT_MAX+TC1)-icData.lastEdge;	// nunca tiene que dar <0 la suma parcial.
-
+		
+		icData.lastEdge = TC1;
 		icData.overflowCnt = 0;
 		TC0 = TC1 + RC5_TIMEOUT;
 	
@@ -95,12 +94,10 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 			STORE_0();
 		} 
 		else 
-		{
 		    resetTransmission(); 
-		}
 	}
-		
-	if (icData.currentBit == -1)
+	
+	if (icData.currentBit == (-1))
 		endTransmission();
 	
 }
@@ -112,7 +109,6 @@ void interrupt ocIR_srv(void) {
 }
 
 void startTransmission(void){
-		
 		OVF_FLAG_CLR();
 		icData.running = _TRUE;
 		IC1_RISING_EDGE;
@@ -143,6 +139,7 @@ void endTransmission(void){
 		data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
 		irPush(data);
 		resetTransmission();
+		
 		return;
 }
 
