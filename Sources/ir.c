@@ -12,6 +12,7 @@
 #define HBT4_MAX 29868
 #define HBT4_MIN 27028
 
+#define RC5_TIMEOUT 30000
 
 #define PREVIOUS_BIT (icData.receivedData & (1<<(icData.currentBit+1)))
 	// +1: para volver al previous bit
@@ -54,17 +55,24 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 			icData.currentBit--;
 		} 
 		else if (timeElapsed >= HBT4_MIN && timeElapsed < HBT4_MAX 
-																						&& PREVIOUS_BIT == 0){
+				&& PREVIOUS_BIT == 0){
 			STORE_BIT;
 			icData.currentBit--;
 			icData.currentBit--;																				
 		} 
-		else resetTransmission(); 
-	
+		else 
+		    resetTransmission(); 
 	}
+	
+	TC0 = TCNT + RC5_TIMEOUT;
+	
 	if (icData.currentBit == -1)
 		endTransmission();
 	
+}
+
+void interrupt ocIR_srv(void) {
+    resetTranmission();
 }
 
 void startTransmission(void){
@@ -79,13 +87,16 @@ void startTransmission(void){
 		else
 			icData.overflowCnt = 1;
 		icData.currentBit--;					// Se deja para el próximo el current
+		
+		TC0 = TCNT + RC5_TIMEOUT;
+		TIE_C0I = 1; //Se activa el OC para timeout
 
 }
 
 void resetTransmission(void){
 		icData.running = _FALSE;
 		IC1_FALLING_EDGE;
-
+		TIE_C0I = 0;
 }
 
 void endTransmission(void){

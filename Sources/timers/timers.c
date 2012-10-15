@@ -14,7 +14,7 @@ void oc_init(void)
 {
 	OC0_DISCONNECTED;
 	TIOS |= OC_CHANNEL;	// Reserve OC channel
-	TIE |= OC_INT_ENABLE;	// set desired interrupts
+	TIE &= !OC_INT_ENABLE;	// set desired interrupts
 	OC_FLAG_CLR;	// Flag clear
 }
 

@@ -4,18 +4,19 @@
 #include "graphics.h"
 #include "rc5table.h"
 #include "a7table.h"
+#include "ir.h"
 
 void init();
-void test_remote(u8);
-
 void main(void)
 {
 	init();
 	
 	while(1)
 	{
-	    u8 remote;// = ir_read();
-	    test_remote(remote);
+	    u8 remote
+	    while ((remote = ir_read()) < 0)
+	        :
+            test_remote(remote);
 	}
 	
 }
