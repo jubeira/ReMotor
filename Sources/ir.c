@@ -2,6 +2,7 @@
 #include "timers.h"
 #include "cb.h"
 #include "ir.h"
+#include "display.h"
 
 #define BUF_LENGTH 50
 #define CNT_MAX 65536
@@ -18,9 +19,9 @@
 
 #define RC5_TIMEOUT 30000
 
-#define PREVIOUS_BIT (icData.receivedData & (1<<(icData.currentBit+1)))
+#define PREVIOUS_BIT (icData.receivedData & (1<< ( (u8) ( icData.currentBit+1))))
 	// +1: para volver al previous bit
-#define STORE_BIT (icData.receivedData |= (1 << icData.currentBit))	
+#define STORE_BIT (icData.receivedData |= (1 << ((u8) icData.currentBit)))
 	// Reminder: los ceros no se guardan; receivedData se inicializa en 0
 static struct {
 	u16 lastEdge;
@@ -52,8 +53,7 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 	
 	if (icData.running == _FALSE){
 		startTransmission();
-	}
-	
+	}	
 	else{
 		timeElapsed = icData.overflowCnt*CNT_MAX+(TC2-icData.lastEdge);
 		icData.overflowCnt = 0;
@@ -79,8 +79,9 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 			icData.currentBit--;
 			icData.currentBit--;																				
 		} 
-		else 
+		else {
 		    resetTransmission(); 
+		    }
 	}
 	
 	TC0 = TCNT + RC5_TIMEOUT;
@@ -91,7 +92,7 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 }
 
 void interrupt ocIR_srv(void) {
-    resetTranmission();
+    resetTransmission();
 }
 
 void startTransmission(void){
@@ -101,7 +102,7 @@ void startTransmission(void){
 		icData.receivedData = 0;
 		icData.receivedData |= (1 << icData.currentBit);
 		icData.lastEdge = TC1 - HBT_TIME;
-		if (TC1 - HBT_TIME >= 0)
+		if (((s16) (TC1 - HBT_TIME )) >= 0)
 			icData.overflowCnt = 0;
 		else
 			icData.overflowCnt = 1;

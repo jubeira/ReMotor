@@ -3,7 +3,7 @@
 
 #include "mc9s12xdp512.h"
 
-#define TIMER_PRESCALER 2			// [0,7]
+#define TIMER_PRESCALER 1			// [0,7]
 #define TIMER_START 1					// {0,1}
 #define TIMER_OVERFLOW_INT 1	// {0,1}
 #define TIMER_RESET_ENABLE 0	// {0,1}
