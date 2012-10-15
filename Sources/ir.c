@@ -2,6 +2,7 @@
 #include "timers.h"
 #include "cb.h"
 #include "ir.h"
+#include "display.h"
 
 #define BUF_LENGTH 50
 #define CNT_MAX 65536
@@ -52,8 +53,7 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 	
 	if (icData.running == _FALSE){
 		startTransmission();
-	}
-	
+	}	
 	else{
 		timeElapsed = icData.overflowCnt*CNT_MAX+(TC2-icData.lastEdge);
 		icData.overflowCnt = 0;
@@ -79,8 +79,9 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 			icData.currentBit--;
 			icData.currentBit--;																				
 		} 
-		else 
+		else {
 		    resetTransmission(); 
+		    }
 	}
 	
 	TC0 = TCNT + RC5_TIMEOUT;
