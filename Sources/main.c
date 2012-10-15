@@ -5,6 +5,8 @@
 #include "rc5table.h"
 #include "a7table.h"
 #include "ir.h"
+#include "display.h"
+#include "kbd.h"
 
 void init(void);
 void test_remote(u8 remote);

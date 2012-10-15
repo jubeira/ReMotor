@@ -17,6 +17,9 @@
 #define HBT4_MAX 29868
 #define HBT4_MIN 27028
 
+#define CLEAR_IC_FLAG() (TFLG1 = TFLG1_C1F_MASK)
+#define CLEAR_OC_FLAG() (TFLG1 = TFLG1_C0F_MASK)
+
 #define RC5_TIMEOUT 30000
 
 #define PREVIOUS_BIT (icData.receivedData & (1<< ( (u8) ( icData.currentBit+1))))
@@ -49,11 +52,12 @@ void ir_init(void){
 
 void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("timers.h")
 	u32 timeElapsed;
+	CLEAR_IC_FLAG();
 	
 	disp_ram[0] = (icData.overflowCnt/1000)%10+'0';
 	disp_ram[1] = (icData.overflowCnt/100)%10+'0';
 	disp_ram[2] = (icData.overflowCnt/10)%10+'0';
-	disp_ram[3] = (icData.overflowCnt/1)%10+'0';
+	disp_ram[3] = (icData.overflowCnt)%10+'0';
 									// Autoclr ON - no hay que borrar flag
 	if (icData.running == _FALSE){
 		startTransmission();
@@ -97,6 +101,7 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 }
 
 void interrupt ocIR_srv(void) {
+    CLEAR_OC_FLAG();
     resetTransmission();
 }
 
