@@ -1,3 +1,5 @@
+#include "mc9s12xdp512.h"
+#include "timers.h"
 
 
 void timer_init(void) 
@@ -12,15 +14,17 @@ void timer_init(void)
 
 void oc_init(void)
 {
-	OC0_DISCONNECTED;
+	TCTL1 = OC_ACTION1;
+	TCTL2 = OC_ACTION2;	// Outputs disconnected
 	TIOS |= OC_CHANNEL;	// Reserve OC channel
-	TIE &= !OC_INT_ENABLE;	// set desired interrupts
+	TIE |= OC_INT_ENABLE;	// set desired interrupts
 	OC_FLAG_CLR;	// Flag clear
 }
 
 void ic_init(void)
 {
-	IC1_FALLING_EDGE;
+	TCTL3 = IC_ACTION1;
+	TCTL4 = IC_ACTION2;
 	TIOS &= !IC_CHANNEL;	// Reserve IC channel
 	TIE = IC_INT_ENABLE;
 	
