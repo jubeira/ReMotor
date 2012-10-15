@@ -19,7 +19,7 @@ void main(void)
 	    s16 remote;
 	    while ((remote = irPop()) < 0)
 	        ;
-            test_remote((u8)remote);
+        test_remote((u8)remote);
 	}
 	
 }
