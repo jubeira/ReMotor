@@ -3,6 +3,7 @@
 #include "cb.h"
 #include "ir.h"
 #include "display.h"
+#include "timers.h"
 
 #define BUF_LENGTH 50
 #define CNT_MAX 65536
@@ -19,6 +20,7 @@
 
 #define CLEAR_IC_FLAG() (TFLG1 = TFLG1_C1F_MASK)
 #define CLEAR_OC_FLAG() (TFLG1 = TFLG1_C0F_MASK)
+
 
 #define RC5_TIMEOUT 37500
 
@@ -118,14 +120,16 @@ void startTransmission(void){
 		icData.currentBit--;					// Se deja para el próximo el current
 		
 		TC0 = TCNT + RC5_TIMEOUT;
-		TIE_C0I = 1; //Se activa el OC para timeout
+		OC_INT_ENABLE(); //Se activa el OC para timeout
+		OVF_INT_ENABLE();
 
 }
 
 void resetTransmission(void){
 		icData.running = _FALSE;
 		IC1_FALLING_EDGE;
-		TIE_C0I = 0;
+		OC_INT_DISABLE();		// Disable output compare int
+		OVF_INT_DISABLE();
 }
 
 void endTransmission(void){
