@@ -1,5 +1,8 @@
 #include "common.h"
 #include "timers.h"
+#include "cb.h"
+
+#define BUF_LENGTH 50
 
 #define HBT_TIME 7112
 
@@ -25,6 +28,21 @@ static struct {
 	u8 overflowCnt;
 	
 }icData = {0, 13, _FALSE, 0};
+
+static u8 irBuffer[BUF_LENGTH];
+static cbuf cBuffer;
+
+
+void ir_init(void){
+	ic_init();
+	oc_init();
+	reset_transmission();
+	timer_init();
+	
+	cBuffer = cb_create(irBuffer, BUF_LENGTH);
+
+}
+
 
 
 void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("timers.h")
@@ -91,15 +109,28 @@ void resetTransmission(void){
 void endTransmission(void){
 		u8 data = icData.receivedData & (0x003F);
 		data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
-		//cb_push(data);
+		cb_push(&cBuffer, data);
 		resetTransmission();
 		return;
 }
 
 
-void interrupt timOvf_srv{
+void interrupt timOvf_srv(void){
 	icData.overflowCnt++;
 	ocData.overflowCnt++;
 	OVF_FLAG_CLR;
 	return;
 }
+
+s16 irPush(u8 data){
+	return cb_push(&cBuffer, data);
+}
+
+s16 irPop(void){
+	return cb_pop(&cBuffer);
+}
+
+s16 irFlush(void){
+	return cb_flush(&cBuffer);
+}
+
