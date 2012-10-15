@@ -22,6 +22,6 @@ void led_init(void);
 void led(u8 brightness);
 void led_blink (u8 dim_on, u8 dim_off, rti_time t_on, rti_time t_off, rti_time dur, s16 end_dim);
 void led_fade (rti_time t_trans, rti_time dur, s16 end_dim);
-void led_stop();
+void led_stop(void);
 
 #endif /* __LED_H__ */
