@@ -27,6 +27,8 @@
 #define OVF_INT_DISABLE() (TSCR2 &= !0x80)
 #define OC_INT_ENABLE()	(TIE_C0I = 1)
 #define OVF_INT_ENABLE() (TSCR2 |= 0x80)
+#define IC_INT_ENABLE() (TIE_C1I = 1)
+#define IC_INT_DISABLE() (TIE_C1I = 0)
 
 #define IC_FLAG_CLR {TFLG1=0x01;}
 
