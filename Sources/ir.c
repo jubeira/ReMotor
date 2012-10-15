@@ -6,17 +6,17 @@
 #include "timers.h"
 
 #define BUF_LENGTH 50
-#define CNT_MAX 65536
-#define HBT_TIME 8890
+#define CNT_MAX ((u16)65536)
+#define HBT_TIME ((u16)8890)
 
-#define HBT1_MAX 9336
-#define HBT1_MIN 8446
-#define HBT2_MAX 18668
-#define HBT2_MIN 16893
-#define HBT3_MAX 28001
-#define HBT3_MIN 25339
-#define HBT4_MAX 37335
-#define HBT4_MIN 33785
+#define HBT1_MAX ((u16)9336)
+#define HBT1_MIN ((u16)8446)
+#define HBT2_MAX ((u16)18668)
+#define HBT2_MIN ((u16)16893)
+#define HBT3_MAX ((u16)28001)
+#define HBT3_MIN ((u16)25339)
+#define HBT4_MAX ((u16)37335)
+#define HBT4_MIN ((u16)33785)
 
 #define CLEAR_IC_FLAG() (TFLG1 = TFLG1_C1F_MASK)
 #define CLEAR_OC_FLAG() (TFLG1 = TFLG1_C0F_MASK)
@@ -24,10 +24,13 @@
 
 #define RC5_TIMEOUT 37500
 
-#define PREVIOUS_BIT (icData.receivedData & (1<< ( (u8) ( icData.currentBit+1))))
+#define PREVIOUS_BIT ((icData.receivedData & (1<< ( (u8) ( icData.currentBit+1)))) ? 1 : 0)
 	// +1: para volver al previous bit
-#define STORE_BIT (icData.receivedData |= (1 << ((u8) icData.currentBit)))
-	// Reminder: los ceros no se guardan; receivedData se inicializa en 0
+#define STORE_1() (icData.receivedData |= (1 << ((u8) (icData.currentBit--))))
+#define STORE_0() (icData.currentBit--)
+
+#define STORE_BIT(a) ((a)? STORE_1() : STORE_0())
+
 static struct {
 	u16 lastEdge;
 	u16 receivedData;
@@ -58,71 +61,74 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 	u32 timeElapsed;
 	CLEAR_IC_FLAG();
 	
-	if (icData.running == _FALSE){
+	if (icData.running == _FALSE)
+	{
 		startTransmission();
 	}	
-	else{
-		timeElapsed = (icData.overflowCnt*CNT_MAX+TC2)-icData.lastEdge;	// nunca tiene que dar <0 la suma parcial.
+	else
+	{
+		timeElapsed = (icData.overflowCnt*CNT_MAX+TC1)-icData.lastEdge;	// nunca tiene que dar <0 la suma parcial.
 
 		icData.overflowCnt = 0;
-		
-		if (timeElapsed >= HBT2_MIN && timeElapsed < HBT2_MAX){
-			if (PREVIOUS_BIT == 1)
-				STORE_BIT;
-			// else: se guarda un 0 (correr el cursor)
-			icData.currentBit--;
-		}
-		else if (timeElapsed >= HBT3_MIN && timeElapsed < HBT3_MAX){
-			if (PREVIOUS_BIT == 0)
-				STORE_BIT;
-			else{
-				STORE_BIT;
-				icData.currentBit--;
-			}
-			icData.currentBit--;
-		} 
-		else if (timeElapsed >= HBT4_MIN && timeElapsed < HBT4_MAX 
-				&& PREVIOUS_BIT == 0){
-			STORE_BIT;
-			icData.currentBit--;
-			icData.currentBit--;																				
-		} 
-		else {
-		    resetTransmission(); 
-		    }
-	}
-		
-	TC0 = TCNT + RC5_TIMEOUT;
+		TC0 = TC1 + RC5_TIMEOUT;
 	
-	if (icData.currentBit == -1){
-		endTransmission();
+		if (timeElapsed >= HBT2_MIN && timeElapsed < HBT2_MAX)
+		{
+			if (PREVIOUS_BIT == 1)
+				STORE_1();
+			else
+				STORE_0();
+		}
+		else if (timeElapsed >= HBT3_MIN && timeElapsed < HBT3_MAX)
+		{
+			if (PREVIOUS_BIT == 0)
+				STORE_1();
+			else
+			{
+				STORE_1();
+				STORE_0();
+			}
+		} 
+		else if (timeElapsed >= HBT4_MIN && timeElapsed < HBT4_MAX && PREVIOUS_BIT == 0)
+		{
+			STORE_1();
+			STORE_0();
+		} 
+		else 
+		{
+		    resetTransmission(); 
+		}
 	}
+		
+	if (icData.currentBit == -1)
+		endTransmission();
 	
 }
 
 void interrupt ocIR_srv(void) {
-    CLEAR_OC_FLAG();
+    OC_FLAG_CLR();
     resetTransmission();
     return;
 }
 
 void startTransmission(void){
+		
+		OVF_FLAG_CLR();
 		icData.running = _TRUE;
 		IC1_RISING_EDGE;
 		icData.currentBit = 13;
 		icData.receivedData = 0;
-		icData.receivedData |= (1 << icData.currentBit);
-		icData.lastEdge = TC1 - HBT_TIME;
+		STORE_1();
+		icData.lastEdge = TC1 - HBT_TIME;	// No pasa nada aunque HBT_TIME > TC1
 		if (((s16) (TC1 - HBT_TIME )) >= 0)
 			icData.overflowCnt = 0;
 		else
 			icData.overflowCnt = 1;
-		icData.currentBit--;					// Se deja para el próximo el current
 		
-		TC0 = TCNT + RC5_TIMEOUT;
+		TC0 = TC1 + RC5_TIMEOUT;
+		OC_FLAG_CLR();
 		OC_INT_ENABLE(); //Se activa el OC para timeout
 		OVF_INT_ENABLE();
-
 }
 
 void resetTransmission(void){
@@ -135,7 +141,7 @@ void resetTransmission(void){
 void endTransmission(void){
 		u8 data = icData.receivedData & (0x003F);
 		data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
-		cb_push(&cBuffer, data);
+		irPush(data);
 		resetTransmission();
 		return;
 }

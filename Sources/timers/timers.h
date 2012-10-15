@@ -11,7 +11,7 @@
 #define OVF_FLAG_CLR() (TFLG2=0x80)
 
 
-#define OC_FLAG_CLR (TFLG1=0x01)
+#define OC_FLAG_CLR() (TFLG1=0x01)
 #define OC_CHANNEL (1<<0)				// Mask - must not use IC_CHANNEL bits
 #define OC_ACTION1 0x00				// Mask
 #define OC_ACTION2 0x00				// Mask
@@ -30,7 +30,7 @@
 #define IC_INT_ENABLE() (TIE_C1I = 1)
 #define IC_INT_DISABLE() (TIE_C1I = 0)
 
-#define IC_FLAG_CLR {TFLG1=0x01;}
+#define IC_FLAG_CLR() (TFLG1=0x01)
 
 #define IC1_FALLING_EDGE {TCTL4_EDG1A = 0;TCTL4_EDG1B = 1;}
 #define IC1_RISING_EDGE {TCTL4_EDG1A = 1;TCTL4_EDG1B = 0;}
