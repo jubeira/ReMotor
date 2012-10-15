@@ -17,9 +17,7 @@
 
 #define CNT_DISP_ON	0
 
-#define SPACE	(' ')
-
-char disp_ram[DISP_SIZE];
+s8 disp_ram[DISP_SIZE];
 struct disp_att disp_att_ram[DISP_SIZE];
 
 struct DispMem
@@ -76,7 +74,7 @@ rti_time disp_get_blink_rate (void)
 
 void display_init(void)
 {
-	int i;
+	s16 i;
 	
 	DISP_DATA_DD = 0xFF;
 	DISP_CTL_DD = (DISP_CTL_DD & (~mDISP)) | (0xFF & mDISP);

@@ -12,19 +12,19 @@
  struct blink_msg_data
  {
  	u8 done;
- 	uint idx;
+ 	u16 idx;
  	timer_id func_id;
  };
  
  struct blink_msg_data data;
  
- void set_global_blink(int blink);
+ void set_global_blink(s16 blink);
  rti_time move_dim (void* _data, rti_time pw);
  rti_time grapics_stop_stage(void* _data, rti_time pw);
  
- void disp_blinking_message (char *msg, rti_time dim_dur, rti_time blink_dur, rti_time dim_rate, rti_time blink_rate) 
+ void disp_blinking_message (s8 *msg, rti_time dim_dur, rti_time blink_dur, rti_time dim_rate, rti_time blink_rate) 
  {
- 	int i;
+ 	s16 i;
  	rti_time orig_blink_rate;
  	
  	strncpy(disp_ram,msg,DISP_SIZE);	
@@ -63,7 +63,7 @@
  
  rti_time move_dim (void* _data, rti_time pw)
  {
- 	int i;
+ 	s16 i;
  	
  	for (i = 0; i < DISP_SIZE; i++)
  		if (i == data.idx)
@@ -86,9 +86,9 @@
  	return pw;
  }
  	
- void set_global_blink(int blink)
+ void set_global_blink(s16 blink)
  {
- 	int i;
+ 	s16 i;
  	for (i = 0; i < DISP_SIZE; i++)
  		disp_att_ram[i].blink = blink;
  }

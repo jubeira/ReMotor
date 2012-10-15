@@ -11,8 +11,8 @@
 
 struct account 
 {
-	char id[ID_LEN];
-	char pw[PW_LEN];
+	s8 id[ID_LEN];
+	s8 pw[PW_LEN];
 };
 
-int is_valid_account(char *id, char *pw);
+s16 is_valid_account(s8 *id, s8 *pw);
