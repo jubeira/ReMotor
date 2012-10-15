@@ -55,7 +55,7 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 		startTransmission();
 	}	
 	else{
-		timeElapsed = icData.overflowCnt*CNT_MAX+(TC2-icData.lastEdge);
+		timeElapsed = (icData.overflowCnt*CNT_MAX+TC2)-icData.lastEdge;	// nunca tiene que dar <0 la suma parcial.
 		icData.overflowCnt = 0;
 		
 		if (timeElapsed >= HBT2_MIN && timeElapsed < HBT2_MAX){
