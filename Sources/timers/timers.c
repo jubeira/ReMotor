@@ -18,7 +18,7 @@ void oc_init(void)
 	TCTL2 = OC_ACTION2;	// Outputs disconnected
 	TIOS |= OC_CHANNEL;	// Reserve OC channel
 	OC_INT_ENABLE();	// set desired interrupts
-	OC_FLAG_CLR;	// Flag clear
+	OC_FLAG_CLR();	// Flag clear
 }
 
 void ic_init(void)
@@ -28,6 +28,6 @@ void ic_init(void)
 	TIOS &= !IC_CHANNEL;	// Reserve IC channel
 	IC_INT_ENABLE();
 	
-	IC_FLAG_CLR;
+	IC_FLAG_CLR();
 
 }
