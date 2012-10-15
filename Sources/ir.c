@@ -40,17 +40,21 @@ void ir_init(void){
 	ic_init();
 	oc_init();
 	resetTransmission();
-	timer_init();
+	timer_init();	
 	
 	cBuffer = cb_create(irBuffer, BUF_LENGTH);
-
 }
 
 
 
 void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("timers.h")
-	u32 timeElapsed;								// Autoclr ON - no hay que borrar flag
+	u32 timeElapsed;
 	
+	disp_ram[0] = (icData.overflowCnt/1000)%10+'0';
+	disp_ram[1] = (icData.overflowCnt/100)%10+'0';
+	disp_ram[2] = (icData.overflowCnt/10)%10+'0';
+	disp_ram[3] = (icData.overflowCnt/1)%10+'0';
+									// Autoclr ON - no hay que borrar flag
 	if (icData.running == _FALSE){
 		startTransmission();
 	}	
@@ -86,8 +90,9 @@ void interrupt icIR_srv(void){		// Elegir channel consistente con IC_CHANNEL ("t
 	
 	TC0 = TCNT + RC5_TIMEOUT;
 	
-	if (icData.currentBit == -1)
+	if (icData.currentBit == -1){
 		endTransmission();
+	}
 	
 }
 
@@ -128,10 +133,12 @@ void endTransmission(void){
 }
 
 
-void interrupt timOvf_srv(void){
+void interrupt timOvf_srv(void)
+{
 	icData.overflowCnt++;
-//	ocData.overflowCnt++;
-	OVF_FLAG_CLR;
+	
+	OVF_FLAG_CLR();
+	
 	return;
 }
 

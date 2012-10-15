@@ -11,7 +11,7 @@ void test_remote(u8 remote);
 void main(void)
 {
 	init();
-    disp_ram[2] = '2';
+	
 	while(1)
 	{
 	    s16 remote;

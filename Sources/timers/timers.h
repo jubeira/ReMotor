@@ -8,7 +8,7 @@
 #define TIMER_OVERFLOW_INT 1	// {0,1}
 #define TIMER_RESET_ENABLE 0	// {0,1}
 #define FLAG_AUTOCLR 1				// {0,1}
-#define OVF_FLAG_CLR (TFLG2=0x80)
+#define OVF_FLAG_CLR() (TFLG2=0x80)
 
 
 #define OC_FLAG_CLR (TFLG1=0x01)
