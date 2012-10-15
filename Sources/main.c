@@ -15,7 +15,7 @@ void main(void)
 	while(1)
 	{
 	    s16 remote;
-	    while ((remote = ir_read()) < 0)
+	    while ((remote = irPop()) < 0)
 	        ;
             test_remote((u8)remote);
 	}
