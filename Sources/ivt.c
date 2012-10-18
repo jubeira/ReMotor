@@ -3,6 +3,7 @@
 #include "config.h"
 #include "rti.h"
 #include "ir.h"
+#include "timers.h"
 
 #ifndef NOTUSED
 #define NOTUSED ((const *)0xFFFF)

@@ -1,6 +1,6 @@
 #include "mc9s12xdp512.h"
 #include "timers.h"
-
+#include "common.h"
 
 void timer_init(void) 
 {
@@ -25,7 +25,7 @@ void ic_init(void)
 {
 	TCTL3 = IC_ACTION1;
 	TCTL4 = IC_ACTION2;
-	TIOS &= !IC_CHANNEL;	// Reserve IC channel
+	TIOS &= ~IC_CHANNEL;	// Reserve IC channel
 	IC_INT_ENABLE();
 	
 	IC_FLAG_CLR();
