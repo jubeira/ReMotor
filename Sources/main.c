@@ -10,16 +10,16 @@
 
 void init(void);
 void test_remote(u8 remote);
+
 void main(void)
 {
 	init();
-	
 	while(1)
 	{
-	    s16 remote;
-	    while ((remote = irPop()) < 0)
-	        ;
-        test_remote((u8)remote);
+//	    s16 remote;
+//	    while ((remote = irPop()) < 0)
+//	        ;
+//        test_remote((u8)remote);
 	}
 	
 }
@@ -27,9 +27,9 @@ void main(void)
 void init (void)
 {
 	rti_init();
-	led_init();
+//	led_init();
 	display_init();
-	kb_init();
+//	kb_init();
 	ir_init();
 	
 	_asm cli;

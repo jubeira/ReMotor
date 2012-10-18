@@ -20,17 +20,17 @@
 
 
 #define IC_ACTION1 0x00
-#define IC_ACTION2 0x04
+#define IC_ACTION2 0x08
 #define IC_CHANNEL 1<<1
 
 #define OC_INT_DISABLE() (TIE_C0I = 0)		// Disable output compare int
-#define OVF_INT_DISABLE() (TSCR2 &= !0x80)
+#define OVF_INT_DISABLE() (TSCR2 &= ~0x80)
 #define OC_INT_ENABLE()	(TIE_C0I = 1)
 #define OVF_INT_ENABLE() (TSCR2 |= 0x80)
 #define IC_INT_ENABLE() (TIE_C1I = 1)
 #define IC_INT_DISABLE() (TIE_C1I = 0)
 
-#define IC_FLAG_CLR() (TFLG1=0x01)
+#define IC_FLAG_CLR() (TFLG1=0x02)
 
 #define IC1_FALLING_EDGE {TCTL4_EDG1A = 0;TCTL4_EDG1B = 1;}
 #define IC1_RISING_EDGE {TCTL4_EDG1A = 1;TCTL4_EDG1B = 0;}
@@ -38,6 +38,5 @@
 void timer_init(void);
 void oc_init(void);
 void ic_init(void);
-
 
 #endif // "_TIMERS_H"
