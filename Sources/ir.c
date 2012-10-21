@@ -147,14 +147,16 @@ void interrupt icIR_srv(void) 	// Elegir channel consistente con IC_CHANNEL ("ti
 void interrupt ocIR_srv(void) 
 {
     OC_FLAG_CLR();
+    
     if (icData.icInhibit == _TRUE)
 	{
-	} 
-	else
-	{
-		TC0 = TC1 + ;
-		resetTransmission();
-	}
+	    icData.icInhibit = _FALSE;
+	    IC_FLAG_CLR();
+	    IC_INT_ENABLE();
+	    TC0 = icData.lastEdge + RC5_TIMEOUT - EDGE_TIME_MARGIN;
+    } 
+    else
+    	resetTransmission();
 	
     return;
 }
