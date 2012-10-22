@@ -14,7 +14,6 @@
 #define RTI_DIV (0x29)
 #define RTI_MAX_FCNS 20
 
-
 #ifdef DEBUG
 #define RTI_DEBUG_DD DDRE_DDRE3
 #define RTI_DEBUG_PIN PORTE_PE3
