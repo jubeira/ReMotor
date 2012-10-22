@@ -35,6 +35,6 @@ typedef void (*rtc_ptr)(void);
 void rtc_init (void);
 void rtc_disable (void);
 void rtc_enable (void);
-void rtc_assignCB (rtc_ptr rtc_cb)
+void rtc_assignCB (rtc_ptr rtc_cb);
 
 #endif

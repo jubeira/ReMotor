@@ -17,7 +17,6 @@
 
 #define OC0_DISCONNECTED {TCTL2_OL0=0;TCTL2_OM0=0;}
 
-
 #define IC_ACTION1 0x00
 #define IC_ACTION2 0x08
 #define IC_CHANNEL 1<<1
@@ -34,27 +33,33 @@
 #define IC1_FALLING_EDGE {TCTL4_EDG1A = 0;TCTL4_EDG1B = 1;}
 #define IC1_RISING_EDGE {TCTL4_EDG1A = 1;TCTL4_EDG1B = 0;}
 
-void oc_init(void);
-void ic_init(void);
+#define TIM_AMOUNT 8
+#define IS_VALID_ID(id) (((id >= 0) && (id < TIM_AMOUNT)) ? _TRUE : _FALSE)
 
 struct {
  bool init;
- bool t0Used;
- bool t1Used;
- bool t2Used;
- bool t3Used;
- bool t4Used;
- bool t5Used;
- bool t6Used;
- bool t7Used;
+ bool isTimerUsed[8];
+ tim_ptr cbArray[8];
+ tim_ptr ovfArray[8];
 } tim_data;
+
 
 void timer_init(void) 
 {
 	if (tim_data.init == _FALSE)
 	{
+		u8 i;
+
 		tim_data.init = true;
 		
+		for (i = 0; i < TIM_AMOUT; i++)
+		{
+			tim_data.isTimerUsed[i] = _FALSE;
+			tim_data.cbArray[i] = NULL;		
+			tim_data.ovfArray[i] = NULL;			
+		}
+		
+		//deshabilitar todas las interrupciones
 		TSCR2 = 0x00;
 		TSCR2_TOI = TIMER_OVERFLOW_INT;
 		TSCR2_TCRE = TIMER_RESET_ENABLE;
@@ -65,9 +70,34 @@ void timer_init(void)
 	return;
 }
 
-s8 timId tim_getTimer(tim_type reqType, tim_ptr intFunct);
-void tim_freeTimer(s8 timId);
 
+s8 timId tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
+{
+	s8 i;
+	for (i = 0; i < TIM_AMOUT; i++)
+		if (tim_data.isTimerUsed[i] == _FALSE)
+		{
+			tim_data.isTimerUsed[i] = _TRUE;
+			tim_data.cbArray[i] = cb;
+			tim_data.ovfArray[i] = ovf;
+			//setear si es oc o ic
+			//deshabilitar interrupciones
+			break;
+		}
+		
+	if (i == TIM_AMOUT)
+		i = INVALID_TIMER;
+	
+	return i;	
+}
+
+void tim_freeTimer(s8 timId)
+{
+	if (!IS_VALID_ID(timdID)
+		return;
+	
+	
+}
 void tim_setFallingEdge(s8 timId);
 void tim_setRisingEdge(s8 timId);
 void tim_setBothEdge(s8 timId);
@@ -79,6 +109,95 @@ void tim_clearFlag(s8 timId);
 
 void tim_getvalue(s8 timId);
 void tim_setValue(s8 timId);
+
+void interrupt tim0_srv(void)
+{
+	if (tim_data.cbArray[0] != NULL)
+		(*tim_data.cbArray[0])();
+	
+	return;
+}
+
+
+void interrupt tim0_srv(void)
+{
+	if (tim_data.cbArray[0] != NULL)
+		(*tim_data.cbArray[0])();
+	
+	return;
+}
+
+
+void interrupt tim1_srv(void)
+{
+	if (tim_data.cbArray[1] != NULL)
+		(*tim_data.cbArray[1])();
+	
+	return;
+}
+
+
+void interrupt tim2_srv(void)
+{
+	if (tim_data.cbArray[2] != NULL)
+		(*tim_data.cbArray[2])();
+	
+	return;
+}
+
+
+void interrupt tim3_srv(void)
+{
+	if (tim_data.cbArray[3] != NULL)
+		(*tim_data.cbArray[3])();
+	
+	return;
+}
+
+
+void interrupt tim4_srv(void)
+{
+	if (tim_data.cbArray[4] != NULL)
+		(*tim_data.cbArray[4])();
+	
+	return;
+}
+
+
+void interrupt tim5_srv(void)
+{
+	if (tim_data.cbArray[5] != NULL)
+		(*tim_data.cbArray[5])();
+	
+	return;
+}
+
+
+void interrupt tim6_srv(void)
+{
+	if (tim_data.cbArray[6] != NULL)
+		(*tim_data.cbArray[6])();
+	
+	return;
+}
+
+
+void interrupt tim7_srv(void)
+{
+	if (tim_data.cbArray[7] != NULL)
+		(*tim_data.cbArray[7])();
+	
+	return;
+}
+
+
+void interrupt timOvf_serv(void)
+{
+	u8 i;
+	for (i = 0; i < TIM_AMOUT; i++)
+		if (tim_data.ovfArray[i] != NULL)
+			(*tim_data.ovfArray[i])();
+}
 
 void oc_init(void)
 {
