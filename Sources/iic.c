@@ -67,7 +67,7 @@ bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
     iic_data.currCB = iic_read_start;
     iic_data.dataIdx = 0;
     
-    IIC0_IBCR_TX_RX = 1; //tengoq ue mandar address
+    IIC0_IBCR_TX_RX = 1;
     
     IIC_START();
     IIC_SEND(slvAddress << 1 + READ);
@@ -78,7 +78,8 @@ bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
 
 void interrupt iic0_srv (void)
 {
-	//ver que onda si llega que perdi arbitraje de sda
+	// Falta revisar si se perdio el arbitraje
+	
     IIC_FLG_CLEAR();   
     
     // Deteccion de eot
