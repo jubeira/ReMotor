@@ -25,10 +25,15 @@ void tim_setBothEdge(s8 timId);
 void tim_enableInterrupts(s8 timId);
 void tim_disableInterrupts(s8 timId);
 
+void tim_enableOvfInterrupts(void);
+void tim_disableOvfInterrupts(void);
+
 void tim_clearFlag(s8 timId);
 
-void tim_getvalue(s8 timId);
-void tim_setValue(s8 timId);
+u16 tim_getValue(s8 timId);
+void tim_setValue(s8 timId, u16 value);
+
+u16 tim_getGlobalValue(void);
 
 void interrupt tim0_srv(void);
 void interrupt tim1_srv(void);
