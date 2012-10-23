@@ -1,10 +1,7 @@
-/* rti.h
- */
-
 #ifndef __RTI_H__
 #define __RTI_H__
 
-#include "../common.h"
+#include "common.h"
 
 #define RTI_FREQ 781 /*Hz*/
 #define RTI_PER (1.0/RTI_FREQ) /*ms */
@@ -72,4 +69,4 @@ rti_time flagger(void *flag, rti_time pw);
 	 * Ejemplo rti_register(flagger, &flag, RTI_ONCE, DELAY);
 	 */
 
-#endif /* __RTI_H__ */
+#endif

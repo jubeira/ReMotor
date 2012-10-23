@@ -15,4 +15,4 @@ s16 irFlush(void);
 s16 irPop(void);
 
 
-#endif _IR_H
+#endif

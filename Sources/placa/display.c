@@ -1,17 +1,8 @@
-/*
- * display.c
- * 
- * Control de Display
- * Lab de micros - 2012 - Grupo X
- *
- */
- 
-#include "derivative.h"
-#include "../common.h"
-#include "../rti/rti.h"
-#include "display.h"
-#include "../util/a7table.h"
 #include "placa.h"
+#include ".common.h"
+#include "rti.h"
+#include "display.h"
+#include "a7table.h"
 
 #define DISP_WRITE(w)	(DISP_DATA_PORT = (ascii_to_7[(u8)(w)]))
 

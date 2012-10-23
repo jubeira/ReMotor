@@ -1,9 +1,4 @@
-/* Circular buffer
- * 
- * Grupo 2 - 2012
-*/
-
-#include "../common.h"
+#include "common.h"
 #include "cb.h"
 
 

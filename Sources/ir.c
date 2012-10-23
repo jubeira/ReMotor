@@ -1,12 +1,9 @@
 #include "common.h"
+#include "ir.h"
 #include "timers.h"
 #include "cb.h"
-#include "ir.h"
-#include "display.h"
-#include "timers.h"
-#include "led.h"
 
-#define BUF_LENGTH 50
+#define BUFF_LENGTH 50
 #define CNT_MAX ((u32)65536)
 #define HBT_TIME ((u32)8890)
 
@@ -27,10 +24,7 @@
 #include "graphics.h"
 #define RC5_TIMEOUT 47500
 
-#define PREVIOUS_BIT ((icData.receivedData & (1<< ( (u8) ( icData.currentBit+1)))) ? 1 : 0)
-	// +1: para volver al previous bit
-//#define STORE_1() (icData.receivedData |= (1 << ((u8) (icData.currentBit--))))
-//#define STORE_0() (icData.currentBit--)
+#define PREVIOUS_BIT ((icData.receivedData & (1<< ( (u8) ( icData.currentBit+1)))) ? 1 : 0) // +1: para volver al previous bit
 
 
 #define STORE_BIT(a) ((a)? STORE_1() : STORE_0())
@@ -45,7 +39,7 @@ static struct {
 	
 }icData = {0, 13, _FALSE, 0};
 
-static u8 irBuffer[BUF_LENGTH];
+static u8 irBuffer[BUFF_LENGTH];
 static cbuf cBuffer;
 
 
@@ -73,7 +67,7 @@ void ir_init(void)
 	DDRE_DDRE6 = 1;
 	PORTE_PE6 = 0;
 	
-	cBuffer = cb_create(irBuffer, BUF_LENGTH);
+	cBuffer = cb_create(irBuffer, BUFF_LENGTH);
 }
 /*
 

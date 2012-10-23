@@ -1,9 +1,3 @@
-/*
- * kbd.h
- * 
- * Grupo 2 - 2012
- */
-
 #ifndef __KB_H__
 #define __KB_H__
 
@@ -24,4 +18,4 @@ s16 kb_read();
 
 void kb_flush();
 
-#endif /* __KB_H__ */
+#endif

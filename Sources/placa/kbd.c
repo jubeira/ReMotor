@@ -1,14 +1,9 @@
-/*
- * kbd.c
- * 
- */
-
-#include <string.h>
-#include "../common.h"
-#include "../rti/rti.h"
-#include "../util/cb.h"
 #include "placa.h"
 #include "kbd.h"
+#include <string.h>
+#include "common.h"
+#include "rti.h"
+#include "cb.h"
 
 #define POLL_INTERVAL RTI_MS2PERIOD(100)
 

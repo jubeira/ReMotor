@@ -1,5 +1,5 @@
-#include "mc9s12xdp512.h"
 #include "timers.h"
+#include "mc9s12xdp512.h"
 
 #define TIM_AMOUNT 8
 
