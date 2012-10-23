@@ -1,27 +1,13 @@
 #include "mc9s12xdp512.h"
 #include "timers.h"
-#include "common.h"
-
-#define	TIMER_PRESCALER 2			// [0,7]
-#define TIMER_START 1					// {0,1}
-#define TIMER_OVERFLOW_INT 1	// {0,1}
-#define TIMER_RESET_ENABLE 0	// {0,1}
-#define FLAG_AUTOCLR 1				// {0,1}
-#define OVF_FLAG_CLR() (TFLG2=0x80)
-
-
-#define OC_FLAG_CLR() (TFLG1=0x01)
-#define OC_CHANNEL (1<<0)				// Mask - must not use IC_CHANNEL bits
-#define OC_ACTION1 0x00				// Mask
-#define OC_ACTION2 0x00				// Mask
-
-#define OC0_DISCONNECTED {TCTL2_OL0=0;TCTL2_OM0=0;}
-
-#define IC_ACTION1 0x00
-#define IC_ACTION2 0x08
-#define IC_CHANNEL 1<<1
 
 #define TIM_AMOUNT 8
+
+#define	TIMER_PRESCALER 2 // Overflow cada 6.5ms, resolución de 100ns
+
+#define SET_TIOS_OC(i) (TIOS |= 1 << i)
+#define SET_TIOS_IC(i) (TIOS &= !(1 << i))
+
 #define IS_VALID_ID(id) (((id >= 0) && (id < TIM_AMOUNT)) ? _TRUE : _FALSE)
 
 struct {
@@ -38,38 +24,44 @@ void timer_init(void)
 	{
 		u8 i;
 
-		tim_data.init = true;
+		tim_data.init = _TRUE;
 		
-		for (i = 0; i < TIM_AMOUT; i++)
+		for (i = 0; i < TIM_AMOUNT; i++)
 		{
 			tim_data.isTimerUsed[i] = _FALSE;
 			tim_data.cbArray[i] = NULL;		
-			tim_data.ovfArray[i] = NULL;			
+			tim_data.ovfArray[i] = NULL;
+			tim_disableInterrupts(i);			
 		}
 		
-		//deshabilitar todas las interrupciones
-		TSCR2 = 0x00;
-		TSCR2_TOI = TIMER_OVERFLOW_INT;
-		TSCR2_TCRE = TIMER_RESET_ENABLE;
-		TSCR2 |= TIMER_PRESCALER;	//Prescaler: 4 - de 0000 a FFFF: tarda 10ms en overflow
-		TSCR1_TEN = TIMER_START; // TEN
+		tim_enableOvfInterrupts();
+		TIOS = 0x00; //Todos son Input capture
+		TSCR2 |= TIMER_PRESCALER;	// Overflow cada 6.5ms, resolución de 100ns
+		TSCR1_TEN = 1; // Enable		
 	}
 	
 	return;
 }
 
 
-s8 timId tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
+s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 {
 	s8 i;
 	for (i = 0; i < TIM_AMOUT; i++)
 		if (tim_data.isTimerUsed[i] == _FALSE)
 		{
+			tim_disableInterrupts(i);
+			tim_clearFlag(i);
+			
 			tim_data.isTimerUsed[i] = _TRUE;
 			tim_data.cbArray[i] = cb;
 			tim_data.ovfArray[i] = ovf;
-			//setear si es oc o ic
-			//deshabilitar interrupciones
+			
+			if (reqType == TIM_OC)
+				SET_TIOS_OC(i);
+			else
+				SET_TIOS_IC(i);
+			
 			break;
 		}
 		
@@ -85,10 +77,12 @@ void tim_freeTimer(s8 timId)
 	if (!IS_VALID_ID(timdID))
 		return;
 	
+	tim_disableInterrupts(timId);
+	tim_clearFlag(i);
+	
 	tim_data.isTimerUsed[i] = _FALSE;
 	tim_data.cbArray[i] = NULL;
 	tim_data.ovfArray[i] = NULL;
-	//deshabilitar interrupciones
 	
 	return;
 }
@@ -183,7 +177,51 @@ void tim_setRisingEdge(s8 timId)
 	return;
 }
 
-void tim_setBothEdge(s8 timId);
+
+void tim_setBothEdge(s8 timId)
+{
+	if(!IS_VALID_ID(timId))
+		return;
+	
+	switch (timId)
+	{
+		case 0:
+			TCTL4_EDG0A = 1;
+			TCTL4_EDG0B = 1;
+			break;
+		case 1:
+			TCTL4_EDG1A = 1;
+			TCTL4_EDG1B = 1;
+			break;
+		case 2:
+			TCTL4_EDG2A = 1;
+			TCTL4_EDG2B = 1;
+			break;
+		case 3:
+			TCTL4_EDG3A = 1;
+			TCTL4_EDG3B = 1;
+			break;
+		case 4:
+			TCTL3_EDG4A = 1;
+			TCTL3_EDG4B = 1;
+			break;
+		case 5:
+			TCTL3_EDG5A = 1;
+			TCTL3_EDG5B = 1;
+			break;
+		case 6:
+			TCTL3_EDG6A = 1;
+			TCTL3_EDG6B = 1;
+			break;
+		case 7:
+			TCTL3_EDG7A = 1;
+			TCTL3_EDG7B = 1;
+			break;
+	}
+	
+	return;
+}
+
 
 void tim_enableInterrupts(s8 timId)
 {
@@ -261,14 +299,14 @@ void tim_disableInterrupts(s8 timId)
 
 void tim_enableOvfInterrupts(void)
 {
-	TSCR2 |= 0x80;
+	TSCR2_TOI = 1;
 	return;
 }
 
 
 void tim_disableOvfInterrupts(void)
 {
-	TSCR2 &= ~0x80;
+	TSCR2_TOI = 0;
 	return:
 }
 
@@ -434,25 +472,4 @@ void interrupt timOvf_serv(void)
 	for (i = 0; i < TIM_AMOUT; i++)
 		if (tim_data.ovfArray[i] != NULL)
 			(*tim_data.ovfArray[i])();
-}
-
-
-void oc_init(void)
-{
-	TCTL1 = OC_ACTION1;
-	TCTL2 = OC_ACTION2;	// Outputs disconnected
-	TIOS |= OC_CHANNEL;	// Reserve OC channel
-	OC_INT_ENABLE();	// set desired interrupts
-	OC_FLAG_CLR();	// Flag clear
-}
-
-void ic_init(void)
-{
-	TCTL3 = IC_ACTION1;
-	TCTL4 = IC_ACTION2;
-	TIOS &= ~IC_CHANNEL;	// Reserve IC channel
-	IC_INT_ENABLE();
-	
-	IC_FLAG_CLR();
-
 }

@@ -1,7 +1,7 @@
 #ifndef _TIMERS_H
 #define _TIMERS_H
 
-#include "mc9s12xdp512.h"
+#include "common.h"
 
 #define INVALID_TIMER (-1)
 
@@ -11,11 +11,11 @@ typedef enum
 	TIM_OC
 } tim_type;
 
-typedef void (*tim_ptr) (void)
+typedef void (*tim_ptr) (void);
 
 void timer_init (void);
 
-s8 timId tim_getTimer(tim_type reqType, tim_ptr cb);
+s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 void tim_freeTimer(s8 timId);
 
 void tim_setFallingEdge(s8 timId);
@@ -35,14 +35,14 @@ void tim_setValue(s8 timId, u16 value);
 
 u16 tim_getGlobalValue(void);
 
-void interrupt tim0_srv(void);
-void interrupt tim1_srv(void);
-void interrupt tim2_srv(void);
-void interrupt tim3_srv(void);
-void interrupt tim4_srv(void);
-void interrupt tim5_srv(void);
-void interrupt tim6_srv(void);
-void interrupt tim7_srv(void);
-void interrupt timOvf_serv(void);
+extern void interrupt tim0_srv(void);
+extern void interrupt tim1_srv(void);
+extern void interrupt tim2_srv(void);
+extern void interrupt tim3_srv(void);
+extern void interrupt tim4_srv(void);
+extern void interrupt tim5_srv(void);
+extern void interrupt tim6_srv(void);
+extern void interrupt tim7_srv(void);
+extern void interrupt timOvf_srv(void);
 
-#endif // "_TIMERS_H"
+#endif
