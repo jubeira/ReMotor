@@ -1,42 +1,48 @@
 #ifndef _TIMERS_H
 #define _TIMERS_H
 
-#include "mc9s12xdp512.h"
+#include "common.h"
 
-#define TIMER_PRESCALER 2			// [0,7]
-#define TIMER_START 1					// {0,1}
-#define TIMER_OVERFLOW_INT 1	// {0,1}
-#define TIMER_RESET_ENABLE 0	// {0,1}
-#define FLAG_AUTOCLR 1				// {0,1}
-#define OVF_FLAG_CLR() (TFLG2=0x80)
+#define INVALID_TIMER (-1)
 
+typedef enum
+{
+	TIM_IC,
+	TIM_OC
+} tim_type;
 
-#define OC_FLAG_CLR() (TFLG1=0x01)
-#define OC_CHANNEL (1<<0)				// Mask - must not use IC_CHANNEL bits
-#define OC_ACTION1 0x00				// Mask
-#define OC_ACTION2 0x00				// Mask
+typedef void (*tim_ptr) (void);
 
-#define OC0_DISCONNECTED {TCTL2_OL0=0;TCTL2_OM0=0;}
+void timer_init (void);
 
+s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
+void tim_freeTimer(s8 timId);
 
-#define IC_ACTION1 0x00
-#define IC_ACTION2 0x08
-#define IC_CHANNEL 1<<1
+void tim_setFallingEdge(s8 timId);
+void tim_setRisingEdge(s8 timId);
+void tim_setBothEdge(s8 timId);
 
-#define OC_INT_DISABLE() (TIE_C0I = 0)		// Disable output compare int
-#define OVF_INT_DISABLE() (TSCR2 &= ~0x80)
-#define OC_INT_ENABLE()	(TIE_C0I = 1)
-#define OVF_INT_ENABLE() (TSCR2 |= 0x80)
-#define IC_INT_ENABLE() (TIE_C1I = 1)
-#define IC_INT_DISABLE() (TIE_C1I = 0)
+void tim_enableInterrupts(s8 timId);
+void tim_disableInterrupts(s8 timId);
 
-#define IC_FLAG_CLR() (TFLG1=0x02)
+void tim_enableOvfInterrupts(void);
+void tim_disableOvfInterrupts(void);
 
-#define IC1_FALLING_EDGE {TCTL4_EDG1A = 0;TCTL4_EDG1B = 1;}
-#define IC1_RISING_EDGE {TCTL4_EDG1A = 1;TCTL4_EDG1B = 0;}
+void tim_clearFlag(s8 timId);
 
-void timer_init(void);
-void oc_init(void);
-void ic_init(void);
+u16 tim_getValue(s8 timId);
+void tim_setValue(s8 timId, u16 value);
 
-#endif // "_TIMERS_H"
+u16 tim_getGlobalValue(void);
+
+extern void interrupt tim0_srv(void);
+extern void interrupt tim1_srv(void);
+extern void interrupt tim2_srv(void);
+extern void interrupt tim3_srv(void);
+extern void interrupt tim4_srv(void);
+extern void interrupt tim5_srv(void);
+extern void interrupt tim6_srv(void);
+extern void interrupt tim7_srv(void);
+extern void interrupt timOvf_srv(void);
+
+#endif

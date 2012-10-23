@@ -75,7 +75,7 @@ void ir_init(void)
 	
 	cBuffer = cb_create(irBuffer, BUF_LENGTH);
 }
-
+/*
 
 
 void interrupt icIR_srv(void) 	// Elegir channel consistente con IC_CHANNEL ("timers.h")
@@ -143,7 +143,7 @@ void interrupt icIR_srv(void) 	// Elegir channel consistente con IC_CHANNEL ("ti
 	}
 	
 }
-
+/*
 void interrupt ocIR_srv(void) 
 {
     OC_FLAG_CLR();
@@ -159,7 +159,7 @@ void interrupt ocIR_srv(void)
     	resetTransmission();
 	
     return;
-}
+}*/
 
 void startTransmission(void)
 {
@@ -210,7 +210,7 @@ void endTransmission(void){
 		return;
 }
 
-
+/*
 void interrupt timOvf_srv(void)
 {
 	OVF_FLAG_CLR();
@@ -218,7 +218,7 @@ void interrupt timOvf_srv(void)
 
 	
 	return;
-}
+}*/
 
 s16 irPush(u8 data){
 	return cb_push(&cBuffer, data);

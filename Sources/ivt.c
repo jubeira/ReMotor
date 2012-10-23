@@ -2,7 +2,6 @@
 
 #include "config.h"
 #include "rti.h"
-#include "ir.h"
 #include "timers.h"
 
 #ifndef NOTUSED
@@ -125,15 +124,15 @@ void (* const interrupt_vector_table[])() ={
     NOTUSED,	// VECT18	timpaie
     NOTUSED,	// VECT17	timpaaovf
     timOvf_srv,	// VECT16	timovf
-    NOTUSED,	// VECT15	timch7
-    NOTUSED,	// VECT14	timch6
-    NOTUSED,	// VECT13	timch5
-    NOTUSED,	// VECT12	timch4
-    NOTUSED,	// VECT11	timch3
-    NOTUSED,	// VECT10	timch2
-    icIR_srv,	// VECT9	timch1
-    ocIR_srv,	// VECT8	timch0
-    rti_srv,	        // VECT7	rti
+    tim7_srv,	// VECT15	timch7
+    tim6_srv,	// VECT14	timch6
+    tim5_srv,	// VECT13	timch5
+    tim4_srv,	// VECT12	timch4
+    tim3_srv,	// VECT11	timch3
+    tim2_srv,	// VECT10	timch2
+    tim1_srv,	// VECT9	timch1
+    tim0_srv,	// VECT8	timch0
+    rti_srv,	// VECT7	rti
     NOTUSED,	// VECT6	irq
     NOTUSED,	// VECT5	xirq
     NOTUSED,	// VECT4	swi

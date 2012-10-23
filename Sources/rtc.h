@@ -1,12 +1,13 @@
 #ifndef _RTC_H
 #define _RTC_H
 
-typedef void (*f)(void) rtc_ptr;
-typedef struct decimal
+#include "common.h"
+
+typedef struct 
 {
     u8 uni;
     u8 deca;
-};
+} decimal;
 
 typedef enum {
     MONDAY,
@@ -28,6 +29,12 @@ struct {
     rtc_day day;
 } rtc_data;
 
+
+typedef void (*rtc_ptr)(void);
+
 void rtc_init (void);
+void rtc_disable (void);
+void rtc_enable (void);
+void rtc_assignCB (rtc_ptr rtc_cb);
 
 #endif
