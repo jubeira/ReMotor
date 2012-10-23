@@ -15,7 +15,7 @@ typedef void (*tim_ptr) (void);
 
 void timer_init (void);
 
-s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
+s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf);
 void tim_freeTimer(s8 timId);
 
 void tim_setFallingEdge(s8 timId);

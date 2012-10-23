@@ -1,5 +1,6 @@
-#include "common.h"
 #include "ir.h"
+
+#include "common.h"
 #include "timers.h"
 #include "cb.h"
 
@@ -18,10 +19,6 @@
 
 #define EDGE_TIME_MARGIN 100
 
-#define CLEAR_IC_FLAG() (TFLG1 = TFLG1_C1F_MASK)
-#define CLEAR_OC_FLAG() (TFLG1 = TFLG1_C0F_MASK)
-
-#include "graphics.h"
 #define RC5_TIMEOUT 47500
 
 #define PREVIOUS_BIT ((icData.receivedData & (1<< ( (u8) ( icData.currentBit+1)))) ? 1 : 0) // +1: para volver al previous bit
@@ -60,12 +57,6 @@ void ir_init(void)
 	ic_init();
 	oc_init();
 	resetTransmission();	
-	DDRM_DDRM0 = 1;
-	PTM_PTM0 = 0;
-	DDRM_DDRM1 = 1;
-	PTM_PTM1 = 0;
-	DDRE_DDRE6 = 1;
-	PORTE_PE6 = 0;
 	
 	cBuffer = cb_create(irBuffer, BUFF_LENGTH);
 }
@@ -136,7 +127,7 @@ void interrupt icIR_srv(void) 	// Elegir channel consistente con IC_CHANNEL ("ti
 		endTransmission();
 	}
 	
-}
+}*/
 /*
 void interrupt ocIR_srv(void) 
 {
@@ -153,7 +144,7 @@ void interrupt ocIR_srv(void)
     	resetTransmission();
 	
     return;
-}*/
+}*//*
 
 void startTransmission(void)
 {
@@ -203,7 +194,7 @@ void endTransmission(void){
 
 		return;
 }
-
+*/
 /*
 void interrupt timOvf_srv(void)
 {

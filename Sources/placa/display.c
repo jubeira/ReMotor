@@ -1,5 +1,5 @@
 #include "placa.h"
-#include ".common.h"
+#include "common.h"
 #include "rti.h"
 #include "display.h"
 #include "a7table.h"
