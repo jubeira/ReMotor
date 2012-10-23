@@ -11,6 +11,11 @@
 #define IIC_FLG_CLEAR() (IIC0_IBSR_IBIF = 1)
 
 struct {
+    u8 data[IIC_MEM_SIZE];
+    u8 dataSize;
+} iic_commData;
+
+struct {
     iic_ptr currCB;
     iic_ptr eotCB;
     iic_ptr commFailedCB;

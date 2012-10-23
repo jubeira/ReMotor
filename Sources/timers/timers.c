@@ -12,9 +12,10 @@
 
 struct {
 	bool init;
-	bool isTimerUsed[8];
-	tim_ptr cbArray[8];
-	tim_ptr ovfArray[8];
+	bool isTimerUsed[TIM_AMOUNT];
+	tim_ptr cbArray[TIM_AMOUNT];
+	tim_ptr ovfArray[TIM_AMOUNT];
+	bool ovfIntEnable[TIM_AMOUNT];
 } tim_data;
 
 
@@ -31,12 +32,13 @@ void timer_init(void)
 			tim_data.isTimerUsed[i] = _FALSE;
 			tim_data.cbArray[i] = NULL;		
 			tim_data.ovfArray[i] = NULL;
+			tim_data.ovfIntEnable[i] = _FALSE;
 			tim_disableInterrupts(i);			
 		}
 		
-		tim_enableOvfInterrupts();
 		TIOS = 0x00; //Todos son Input capture
 		TSCR2 |= TIMER_PRESCALER;	// Overflow cada 6.5ms, resolución de 100ns
+		TSCR2_TOI = 1;
 		TSCR1_TEN = 1; // Enable		
 	}
 	
@@ -56,6 +58,7 @@ s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 			tim_data.isTimerUsed[i] = _TRUE;
 			tim_data.cbArray[i] = cb;
 			tim_data.ovfArray[i] = ovf;
+			tim_data.ovfIntEnable[i] = _FALSE;
 			
 			if (reqType == TIM_OC)
 				SET_TIOS_OC(i);
@@ -72,6 +75,20 @@ s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 }
 
 
+s8 tim_safeGetTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf) 
+{
+	u8 i;
+	for (i = 0; i < TIM_AMOUNT; i++)
+		if (tim_data.ovfArray[i] == ovf) // No anota dos veces el ovf
+		{
+			ovf = NULL;
+			break;
+		}
+		
+	return tim_getTimer(reqType, cb, ovf);	
+}
+
+
 void tim_freeTimer(s8 timId)
 {
 	if (!IS_VALID_ID(timId))
@@ -81,6 +98,7 @@ void tim_freeTimer(s8 timId)
 	tim_clearFlag(timId);
 	
 	tim_data.isTimerUsed[timId] = _FALSE;
+	tim_data.ovfIntEnable[timId] = _FALSE;
 	tim_data.cbArray[timId] = NULL;
 	tim_data.ovfArray[timId] = NULL;
 	
@@ -297,16 +315,24 @@ void tim_disableInterrupts(s8 timId)
 }
 
 
-void tim_enableOvfInterrupts(void)
+void tim_enableOvfInterrupts(s8 timId)
 {
-	TSCR2_TOI = 1;
+	if (!IS_VALID_ID(timId))
+		return;
+	
+	tim_data.ovfIntEnable[timId] = _TRUE;
+
 	return;
 }
 
 
-void tim_disableOvfInterrupts(void)
+void tim_disableOvfInterrupts(s8 timId)
 {
-	TSCR2_TOI = 0;
+	if (!IS_VALID_ID(timId))
+		return;
+	
+	tim_data.ovfIntEnable[timId] = _FALSE;
+
 	return;
 }
 
@@ -322,7 +348,7 @@ void tim_clearFlag(s8 timId)
 }
 
 
-u16 tim_getvalue(s8 timId)
+u16 tim_getValue(s8 timId)
 {
 	if(!IS_VALID_ID(timId))
 		return 0;
@@ -396,6 +422,8 @@ u16 tim_getGlobalValue(void)
 
 void interrupt tim0_srv(void)
 {
+	tim_clearFlag(0);
+	
 	if (tim_data.cbArray[0] != NULL)
 		(*tim_data.cbArray[0])();
 	
@@ -405,6 +433,8 @@ void interrupt tim0_srv(void)
 
 void interrupt tim1_srv(void)
 {
+	tim_clearFlag(1);
+
 	if (tim_data.cbArray[1] != NULL)
 		(*tim_data.cbArray[1])();
 	
@@ -414,6 +444,8 @@ void interrupt tim1_srv(void)
 
 void interrupt tim2_srv(void)
 {
+	tim_clearFlag(2);
+
 	if (tim_data.cbArray[2] != NULL)
 		(*tim_data.cbArray[2])();
 	
@@ -423,6 +455,8 @@ void interrupt tim2_srv(void)
 
 void interrupt tim3_srv(void)
 {
+	tim_clearFlag(3);
+
 	if (tim_data.cbArray[3] != NULL)
 		(*tim_data.cbArray[3])();
 	
@@ -432,6 +466,8 @@ void interrupt tim3_srv(void)
 
 void interrupt tim4_srv(void)
 {
+	tim_clearFlag(4);
+
 	if (tim_data.cbArray[4] != NULL)
 		(*tim_data.cbArray[4])();
 	
@@ -441,6 +477,8 @@ void interrupt tim4_srv(void)
 
 void interrupt tim5_srv(void)
 {
+	tim_clearFlag(5);
+
 	if (tim_data.cbArray[5] != NULL)
 		(*tim_data.cbArray[5])();
 	
@@ -450,6 +488,8 @@ void interrupt tim5_srv(void)
 
 void interrupt tim6_srv(void)
 {
+	tim_clearFlag(6);
+
 	if (tim_data.cbArray[6] != NULL)
 		(*tim_data.cbArray[6])();
 	
@@ -459,6 +499,8 @@ void interrupt tim6_srv(void)
 
 void interrupt tim7_srv(void)
 {
+	tim_clearFlag(7);
+
 	if (tim_data.cbArray[7] != NULL)
 		(*tim_data.cbArray[7])();
 	
@@ -469,7 +511,10 @@ void interrupt tim7_srv(void)
 void interrupt timOvf_srv(void)
 {
 	u8 i;
+
+	TFLG2_TOF = 1;
+	
 	for (i = 0; i < TIM_AMOUNT; i++)
-		if (tim_data.ovfArray[i] != NULL)
+		if ((tim_data.ovfArray[i] != NULL) && (tim_data.ovfIntEnable[i] == _TRUE))
 			(*tim_data.ovfArray[i])();
 }
