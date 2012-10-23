@@ -1,4 +1,5 @@
 #include "iic.h"
+#include "mc9s12xdp512.h"
 
 #define IIC_START()	(IIC0_IBCR_MS_SL = 1)
 #define IIC_STOP() (IIC0_IBCR_MS_SL = 0)

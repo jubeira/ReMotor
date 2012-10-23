@@ -2,7 +2,6 @@
 #define _RTC_H
 
 #include "common.h"
-#include "mc9s12xdp512.h"
 
 #define IIC_MEM_SIZE 256
 #define IS_IIC_BUSY() (IIC0_IBSR_IBB ? _TRUE : _FALSE)

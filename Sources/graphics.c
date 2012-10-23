@@ -1,11 +1,3 @@
-/*
- * graphics.c
- * 
- * Control de LED
- * Lab de micros - 2012 - Grupo X
- *
- */
- 
  #include <string.h>
  #include "graphics.h"
  

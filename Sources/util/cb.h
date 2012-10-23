@@ -1,15 +1,7 @@
-/*
- * cb.h
- *
- * grupo 2 - 2012
- * 
- * Buffers circulares
- */
-
 #ifndef __CB_H__
 #define __CB_H__
 
-#include "../common.h"
+#include "common.h"
 
 enum {CB_READY, CB_EMPTY, CB_FULL};
 
@@ -33,4 +25,4 @@ s16 cb_pop(cbuf* buffer);
 
 s16 cb_flush(cbuf* buffer);
 
-#endif /* __CB_H__ */
+#endif

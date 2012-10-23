@@ -1,16 +1,8 @@
-/*
- * display.h
- * 
- * Control de Display
- * Lab de micros - 2012 - Grupo X
- *
- */
- 
 #ifndef __DISPLAY_H__
 #define __DISPLAY_H__
 
-#include "../common.h"
-#include "../rti/rti.h"
+#include "common.h"
+#include "rti.h"
 
 #define     DISP_SIZE	4
 #define	DISP_FULL_DIM		0
@@ -32,5 +24,4 @@ rti_time disp_get_blink_rate (void);
 
 void display_init(void);
 
-#endif /* __DISPLAY_H__ */
-
+#endif

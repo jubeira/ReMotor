@@ -1,7 +1,3 @@
-/* Tabla de códigos RC5
-*	Grupo X - 2012
-*/
-
 #ifndef _RC5_TBL_
 #define _RC5_TBL_
 
@@ -26,4 +22,4 @@ enum {
 	RC5_STOP	
 };
 
-#endif /* _RC5_TBL_ */
+#endif

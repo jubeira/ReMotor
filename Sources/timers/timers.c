@@ -1,5 +1,5 @@
-#include "mc9s12xdp512.h"
 #include "timers.h"
+#include "mc9s12xdp512.h"
 
 #define TIM_AMOUNT 8
 
@@ -47,7 +47,7 @@ void timer_init(void)
 s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 {
 	s8 i;
-	for (i = 0; i < TIM_AMOUT; i++)
+	for (i = 0; i < TIM_AMOUNT; i++)
 		if (tim_data.isTimerUsed[i] == _FALSE)
 		{
 			tim_disableInterrupts(i);
@@ -65,7 +65,7 @@ s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 			break;
 		}
 		
-	if (i == TIM_AMOUT)
+	if (i == TIM_AMOUNT)
 		i = INVALID_TIMER;
 	
 	return i;	
@@ -74,15 +74,15 @@ s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 
 void tim_freeTimer(s8 timId)
 {
-	if (!IS_VALID_ID(timdID))
+	if (!IS_VALID_ID(timId))
 		return;
 	
 	tim_disableInterrupts(timId);
-	tim_clearFlag(i);
+	tim_clearFlag(timId);
 	
-	tim_data.isTimerUsed[i] = _FALSE;
-	tim_data.cbArray[i] = NULL;
-	tim_data.ovfArray[i] = NULL;
+	tim_data.isTimerUsed[timId] = _FALSE;
+	tim_data.cbArray[timId] = NULL;
+	tim_data.ovfArray[timId] = NULL;
 	
 	return;
 }
@@ -225,7 +225,7 @@ void tim_setBothEdge(s8 timId)
 
 void tim_enableInterrupts(s8 timId)
 {
-	if(!IS_VALID_ID(timId)
+	if(!IS_VALID_ID(timId))
 		return;
 	
 	switch (timId)
@@ -262,7 +262,7 @@ void tim_enableInterrupts(s8 timId)
 
 void tim_disableInterrupts(s8 timId)
 {
-	if(!IS_VALID_ID(timId)
+	if(!IS_VALID_ID(timId))
 		return;
 	
 	switch (timId)
@@ -307,7 +307,7 @@ void tim_enableOvfInterrupts(void)
 void tim_disableOvfInterrupts(void)
 {
 	TSCR2_TOI = 0;
-	return:
+	return;
 }
 
 
@@ -353,7 +353,7 @@ u16 tim_getvalue(s8 timId)
 
 void tim_setValue(s8 timId, u16 value)
 {
-	if(!IS_VALID_ID(timId)
+	if(!IS_VALID_ID(timId))
 		return;
 	
 	switch (timId)
@@ -466,10 +466,10 @@ void interrupt tim7_srv(void)
 }
 
 
-void interrupt timOvf_serv(void)
+void interrupt timOvf_srv(void)
 {
 	u8 i;
-	for (i = 0; i < TIM_AMOUT; i++)
+	for (i = 0; i < TIM_AMOUNT; i++)
 		if (tim_data.ovfArray[i] != NULL)
 			(*tim_data.ovfArray[i])();
 }

@@ -1,13 +1,8 @@
-/*
- * placa.h
-*
-* grupo 2 - 2012
- */
 
 #ifndef __PLACA_H__
 #define __PLACA_H__
 
-#include "derivative.h"
+#include "mc9s12xdp512.h"
 
 #define DISP_DATA_PORT	PORTA
 #define DISP_DATA_DD	DDRA
@@ -34,4 +29,4 @@
 #define KB_PROBE(line)	SHARED_OUT(KB_PORT, mKB_WRITE, ~(1<<(line)))
 #define KB_READ()	((KB_PORT & mKB_READ) >> KB_READ_BOFF)
 
-#endif /* __PLACA_H__ */
+#endif

@@ -1,21 +1,14 @@
-/*
- * led.c
- * 
- * Control de LED
- * Lab de micros - 2012 - Grupo X
- *
- */
-
 #include <limits.h>
-#include "derivative.h"
+#include "mc9s12xdp512.h"
 #include "led.h"
-#include "rti/rti.h"
+#include "rti.h"
 
 #define DIM_BITS 3
 #define DIM_MIN 0
 #define DIM_MAX ((1<<(DIM_BITS))-1)
 #define LED_PORT PORTB_PB7
 #define LED_PORT_DD DDRB_DDRB7
+#define PORT_DD_OUT 1
 
 #define BRIGHT2DIM(br) ((br)>>(CHAR_BIT - DIM_BITS))
 #define DIM2BRIGHT(di) ((di)<<(CHAR_BIT - DIM_BITS))
@@ -64,7 +57,7 @@ static struct LEDBlink led_fancy_cfg;
 
 void led_init(void)
 {
-	LED_PORT_DD = PORTDD_OUT;
+	LED_PORT_DD = PORT_DD_OUT;
 	
 	led_cfg.dim = LED_OFF;
 	led_cfg.blinking = LED_NOT_BLINKING;
@@ -80,7 +73,6 @@ void led_up()
 
 void led_down()
 {
-//	led_cfg.dim--;
 	led_cfg.dim = (led_cfg.dim - 1)%(DIM_MAX+1);
 }
 
