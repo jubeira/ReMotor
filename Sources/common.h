@@ -5,9 +5,10 @@
 #define NULL ((void*)0)
 #endif
 
-
 #define DIVUP(a,b) (((a)/(b))+1)
 #define MAKE_EVEN(a) (((x)/2)*2)
+
+#define ARSIZE(a) ((sizeof(a))/(sizeof((a)[0])))
 
 #define BOOL(a) ((a)?1:0)
 

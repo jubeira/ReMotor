@@ -8,7 +8,7 @@
 
 typedef void (*iic_ptr)(void);
 
-struct {
+extern struct {
     u8 data[IIC_MEM_SIZE];
     u8 dataSize;
 } iic_commData;

@@ -1,8 +1,5 @@
 #include "ir.h"
-
-#include "common.h"
 #include "timers.h"
-#include "cb.h"
 
 #define BUFF_LENGTH 50
 #define CNT_MAX ((u32)65536)
@@ -17,203 +14,212 @@
 #define HBT4_MAX ((u32)37335)
 #define HBT4_MIN ((u32)33785)
 
+#define RC5_TIMEOUT 47500
 #define EDGE_TIME_MARGIN 100
 
-#define RC5_TIMEOUT 47500
+#define PREVIOUS_BIT() ((icData.receivedData & (1<< ( (u8) ( icData.currentBit+1)))) ? 1 : 0) // +1: para volver al previous bit
 
-#define PREVIOUS_BIT ((icData.receivedData & (1<< ( (u8) ( icData.currentBit+1)))) ? 1 : 0) // +1: para volver al previous bit
-
-
-#define STORE_BIT(a) ((a)? STORE_1() : STORE_0())
-
-static struct {
+static struct 
+{
 	u16 lastEdge;
 	u16 receivedData;
 	s8 currentBit;
-	bool running;
+	bool transmitting;
 	u8 overflowCnt;
 	bool icInhibit;
-	
-}icData = {0, 13, _FALSE, 0};
+	bool init;
+} icData = {0,0, 13, _FALSE, 0,_FALSE, _FALSE};
+
+static struct 
+{
+	s8 icTimerId;
+	s8 ocTimerId;
+} irTimers;
+
 
 static u8 irBuffer[BUFF_LENGTH];
 static cbuf cBuffer;
 
 
-void STORE_1(void)
+void startTransmission(void);
+void resetTransmission(void);
+void endTransmission(void);
+
+void store_0(void);
+void store_1(void);
+
+void ir_icSrv(void);
+void ir_ocSrv(void);
+void ir_ovfSrv(void);
+
+void store_1(void)
 {
 	icData.receivedData |= (1 << ((u8) (icData.currentBit)));
 	icData.currentBit--;
 }
 
-void STORE_0(void)
+
+void store_0(void)
 {
 	icData.currentBit--;
 }
 
+
 void ir_init(void)
 {
+	if (icData.init == _TRUE) 
+		return;
+	
+	icData.init = _TRUE;
+	
 	timer_init();
-	ic_init();
-	oc_init();
+	
+	irTimers.icTimerId = tim_getTimer(TIM_IC, ir_icSrv, ir_ovfSrv);
+	irTimers.ocTimerId = tim_getTimer(TIM_OC, ir_ocSrv, NULL);
+	
+	tim_enableOvfInterrupts(irTimers.icTimerId);
+	
+	cBuffer = cb_create(irBuffer, BUFF_LENGTH);	
+	
 	resetTransmission();	
 	
-	cBuffer = cb_create(irBuffer, BUFF_LENGTH);
+	return;
 }
-/*
 
 
-void interrupt icIR_srv(void) 	// Elegir channel consistente con IC_CHANNEL ("timers.h")
-{	
-	icData.icInhibit = _TRUE;
-	IC_INT_DISABLE();
-	TC0 = TC1 + EDGE_TIME_MARGIN;
+void resetTransmission(void)
+{
+	icData.transmitting = _FALSE;
 	
-	if (PORTE_PE6 == 0)
-		PORTE_PE6 = 1;
+	//Las interrupciones por OC sólo están habilitadas durante una transmisión
+	icData.icInhibit = _FALSE;
+	tim_enableInterrupts(irTimers.icTimerId); 
+	tim_setFallingEdge(irTimers.icTimerId);
+	tim_disableInterrupts(irTimers.ocTimerId);
+}
+
+
+void startTransmission(void)
+{
+	icData.transmitting = _TRUE;
+	
+	tim_setRisingEdge(irTimers.icTimerId);
+	
+	icData.currentBit = 13;
+	icData.receivedData = 0;
+	store_1();
+	
+	icData.lastEdge = tim_getValue(irTimers.icTimerId) - HBT_TIME;	// No pasa nada aunque HBT_TIME > TC1
+	
+	if (((s32) (tim_getValue(irTimers.icTimerId) - (s32)(HBT_TIME) )) >= 0)
+		icData.overflowCnt = 0;
 	else
-		PORTE_PE6 = 0;
+		icData.overflowCnt = 1;
 	
-	if (icData.running == _FALSE)
-	{
+	tim_enableInterrupts(irTimers.ocTimerId);
+}
+
+
+void endTransmission(void)
+{
+	u8 data = icData.receivedData & (0x003F);
+	data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
+	ir_push(data);
+
+	resetTransmission();	
+
+	return;
+}
+
+
+void ir_icSrv(void) 
+{		
+	icData.icInhibit = _TRUE;
+	tim_disableInterrupts(irTimers.icTimerId);
+	
+	tim_clearFlag(irTimers.ocTimerId);
+	tim_setValue(irTimers.ocTimerId, tim_getValue(irTimers.icTimerId) + EDGE_TIME_MARGIN); //Margen por rise time lento
+
+	if (icData.transmitting == _FALSE)
 		startTransmission();	
-	
-	}
 	else
 	{	
-		u32 timeElapsed;
-	
-		timeElapsed = (icData.overflowCnt*CNT_MAX+TC1)-icData.lastEdge;	// nunca tiene que dar <0 la suma parcial.
+		u32 timeElapsed = (icData.overflowCnt * CNT_MAX + tim_getValue(irTimers.icTimerId)) - icData.lastEdge;
 		
-		icData.lastEdge = TC1;
+		icData.lastEdge = tim_getValue(irTimers.icTimerId);
 		icData.overflowCnt = 0;
-		TC0 = TC1 + RC5_TIMEOUT;
 	
 		if ((timeElapsed >= HBT2_MIN) && (timeElapsed < HBT2_MAX))
 		{
-			if (PREVIOUS_BIT == 1)
-				STORE_1();
+			if (PREVIOUS_BIT() == 1)
+				store_1();
 			else
-				STORE_0();
+				store_0();
 		}
 		else if ((timeElapsed >= HBT3_MIN) && (timeElapsed < HBT3_MAX))
 		{
-			if (PREVIOUS_BIT == 0)
-				STORE_1();
+			if (PREVIOUS_BIT() == 0)
+				store_1();
 			else
 			{
-				STORE_1();
-				STORE_0();
+				store_1();
+				store_0();
 			}
 		} 
-		else if ((timeElapsed >= HBT4_MIN) && (timeElapsed < HBT4_MAX) && (PREVIOUS_BIT == 0))
+		else if ((timeElapsed >= HBT4_MIN) && (timeElapsed < HBT4_MAX) && (PREVIOUS_BIT() == 0))
 		{
-			STORE_1();
-			STORE_0();
+			store_1();
+			store_0();
 		} 
 		else 
-		{	
-			if (PTM_PTM1 == 0)
-				PTM_PTM1 = 1;
-			else
-				PTM_PTM1 = 0;
-			
 		    resetTransmission(); 
-		}
 	}
 	
 	if (icData.currentBit == (-1))
-	{	
 		endTransmission();
-	}
 	
-}*/
-/*
-void interrupt ocIR_srv(void) 
+	return;
+}
+
+
+void ir_ocSrv(void) 
 {
-    OC_FLAG_CLR();
-    
     if (icData.icInhibit == _TRUE)
 	{
 	    icData.icInhibit = _FALSE;
-	    IC_FLAG_CLR();
-	    IC_INT_ENABLE();
-	    TC0 = icData.lastEdge + RC5_TIMEOUT - EDGE_TIME_MARGIN;
+	    tim_clearFlag(irTimers.icTimerId);
+	    tim_enableInterrupts(irTimers.icTimerId);
+	    tim_setValue(irTimers.ocTimerId, (icData.lastEdge + RC5_TIMEOUT) - EDGE_TIME_MARGIN);
     } 
     else
     	resetTransmission();
 	
     return;
-}*//*
-
-void startTransmission(void)
-{
-		OVF_FLAG_CLR();
-		icData.running = _TRUE;
-		IC1_RISING_EDGE;
-		icData.currentBit = 13;
-		icData.receivedData = 0;
-		STORE_1();
-		icData.lastEdge = TC1 - HBT_TIME;	// No pasa nada aunque HBT_TIME > TC1
-		if (((s32) (TC1 - (s32)(HBT_TIME) )) >= 0)
-			icData.overflowCnt = 0;
-		else
-			icData.overflowCnt = 1;
-		
-		OC_FLAG_CLR();
-		OC_INT_ENABLE(); //Se activa el OC para timeout
-		OVF_INT_ENABLE();
 }
 
-void resetTransmission(void)
+
+void ir_ovfSrv(void)
 {
-		if (PTM_PTM0 == 0)
-			PTM_PTM0 = 1;
-		else
-			PTM_PTM0 = 0;
-		
-		icData.running = _FALSE;
-		IC1_FALLING_EDGE;
-		OC_INT_DISABLE();		// Disable output compare int
-		OVF_INT_DISABLE();
-}
-
-void endTransmission(void){
-		u8 data = icData.receivedData & (0x003F);
-		data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
-		irPush(data);
-		
-		disp_ram[0] = (data/1000)%10+'0';
-		disp_ram[1] = (data/100)%10+'0';
-		disp_ram[2] = (data/10)%10+'0';
-		disp_ram[3] = (data)%10+'0';
-		
-
-		resetTransmission();
-		
-
-		return;
-}
-*/
-/*
-void interrupt timOvf_srv(void)
-{
-	OVF_FLAG_CLR();
 	icData.overflowCnt++;
-
 	
 	return;
-}*/
+}
 
-s16 irPush(u8 data){
+
+s16 ir_push(u8 data)
+{
 	return cb_push(&cBuffer, data);
 }
 
-s16 irPop(void){
+
+s16 ir_pop(void)
+{
 	return cb_pop(&cBuffer);
 }
 
-s16 irFlush(void){
+
+s16 ir_flush(void)
+{
 	return cb_flush(&cBuffer);
 }
 
