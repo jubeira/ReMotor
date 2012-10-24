@@ -17,7 +17,7 @@ void main(void)
 	{
 		s16 irData = ir_pop();
 		if (irData > 0)
-			printf("%d\n",(u16)irData);
+			printf("%x\n",(u16)irData);
 	}	
 }
 

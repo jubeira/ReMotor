@@ -105,7 +105,7 @@ void startTransmission(void)
 	
 	tim_setRisingEdge(irTimers.icTimerId);
 	
-	icData.currentBit = 13;
+	icData.currentBit = 14;
 	icData.receivedData = 0;
 	store_1();
 	
@@ -123,7 +123,7 @@ void startTransmission(void)
 void endTransmission(void)
 {
 	u8 data = icData.receivedData & (0x003F);
-	data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
+	data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);	// ASK HUGO BOSS
 	ir_push(data);
 
 	resetTransmission();	
