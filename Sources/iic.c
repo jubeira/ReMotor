@@ -8,12 +8,16 @@
 #define READ 0
 #define WRITE 1
 
+#define IIC_MODULE_ENABLE() (IIC0_IBCR_IBEN = 1)
 #define IIC_FLG_CLEAR() (IIC0_IBSR_IBIF = 1)
+#define IIC_INTERRUPT_ENABLE() (IIC0_IBCR_IBIE = 1)
 
-struct {
-    u8 data[IIC_MEM_SIZE];
-    u8 dataSize;
-} iic_commData;
+#define IIC_SET_AS_TX() (IIC0_IBCR_TX_RX = 1)
+#define IIC_SET_AS_RX() (IIC0_IBCR_TX_RX = 0)
+#define IIC_ACKNOWLEDGE_DATA() (IIC0_IBCR_TXAK = 0)
+#define IIC_NOT_ACKNOWLEDGE_DATA() (IIC0_IBCR_TXAK = 1)
+
+iic_commData_T iic_commData;
 
 struct {
     iic_ptr currCB;
@@ -21,7 +25,7 @@ struct {
     iic_ptr commFailedCB;
     u8 dataIdx;
     bool init;
-}iic_data = {0,0,0,0,_FALSE};
+}iic_data = {NULL,NULL,NULL,0,_FALSE};
 
 void iic_init (void);
 void iic_read (void);
@@ -34,10 +38,10 @@ void iic_init (void)
 	if (iic_data.init == _FALSE)
 	{
 		iic_data.init = _TRUE;
-    	IIC0_IBCR_IBEN = 1;
+    	IIC_MODULE_ENABLE();
     	//falta baud rate
-    	IIC0_IBSR_IBIF = 1;
-    	IIC0_IBCR_IBIE = 1;
+    	IIC_FLG_CLEAR();
+    	IIC_INTERRUPT_ENABLE();
     }
     
     return;
@@ -54,7 +58,7 @@ bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
     iic_data.currCB = iic_write;
     iic_data.dataIdx = 0;
     
-    IIC0_IBCR_TX_RX = 1;
+    IIC_SET_AS_TX();
     
     IIC_START();
     IIC_SEND(slvAddress << 1 + WRITE);
@@ -73,7 +77,7 @@ bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
     iic_data.currCB = iic_read_start;
     iic_data.dataIdx = 0;
     
-    IIC0_IBCR_TX_RX = 1;
+    IIC_SET_AS_TX();
     
     IIC_START();
     IIC_SEND(slvAddress << 1 + READ);
@@ -114,16 +118,16 @@ void iic_read_start (void)
 {	
 	if (iic_commData.dataSize == 0)
 	{
-		IIC0_IBCR_TXAK = 1;
+		IIC_NOT_ACKNOWLEDGE_DATA();
 		iic_data.currCB = iic_data.eotCB;
 	}
 	else
 	{
-		IIC0_IBCR_TXAK = 0;
+		IIC_ACKNOWLEDGE_DATA();
 		iic_data.currCB = iic_read;
 	}
 	
-	IIC0_IBCR_TX_RX = 0;
+	IIC_SET_AS_RX();
 	iic_commData.data[iic_data.dataIdx] = IIC_RECEIVE(); //Dummy read
 }
 
@@ -132,7 +136,7 @@ void iic_read (void)
 {
 	if (iic_data.dataIdx == (iic_commData.dataSize-1))
 	{
-		IIC0_IBCR_TXAK = 1;
+		IIC_NOT_ACKNOWLEDGE_DATA();
         iic_data.currCB = iic_data.eotCB;
     }
     
