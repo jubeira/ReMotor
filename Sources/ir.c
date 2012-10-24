@@ -1,4 +1,5 @@
 #include "ir.h"
+#include "cb.h"
 #include "timers.h"
 
 #define BUFF_LENGTH 50
@@ -91,7 +92,7 @@ void resetTransmission(void)
 {
 	icData.transmitting = _FALSE;
 	
-	//Las interrupciones por OC sólo están habilitadas durante una transmisión
+	//Las interrupciones por OC solo están habilitadas durante una transmision
 	icData.icInhibit = _FALSE;
 	tim_enableInterrupts(irTimers.icTimerId); 
 	tim_setFallingEdge(irTimers.icTimerId);
@@ -123,7 +124,8 @@ void startTransmission(void)
 void endTransmission(void)
 {
 	u8 data = icData.receivedData & (0x003F);
-	data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);	// ASK HUGO BOSS
+	data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
+	data |= (((icData.receivedData & (1<<11)) ? 1 : 0)<<7);
 	ir_push(data);
 
 	resetTransmission();	
