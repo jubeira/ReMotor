@@ -8,10 +8,12 @@
 
 typedef void (*iic_ptr)(void);
 
-extern struct {
+typedef struct {
     u8 data[IIC_MEM_SIZE];
     u8 dataSize;
-} iic_commData;
+} iic_commData_T;
+
+extern iic_commData_T iic_commData;
 
 void iic_init (void);
 bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB);
