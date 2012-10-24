@@ -16,7 +16,7 @@ void main(void)
 	for(;;)
 	{
 		s16 irData = ir_pop();
-		if (irData > 0)
+		if (irData != IR_NO_COMMAND)
 			printf("%x\n",(u16)irData);
 	}	
 }

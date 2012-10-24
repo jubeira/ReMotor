@@ -2,7 +2,8 @@
 #define _IR_H
 
 #include "common.h"
-#include "cb.h"
+
+#define IR_NO_COMMAND (-1)
 
 void ir_init(void);
 
