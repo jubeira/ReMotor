@@ -42,4 +42,6 @@ void rtc_disable (void);
 void rtc_assignCB (rtc_ptr rtc_cb);
 void rtc_setAllRegisters(rtc_ptr cb);
 
+u8 decimal2u8(decimal d);
+
 #endif
