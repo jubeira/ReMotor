@@ -48,7 +48,7 @@ void iic_init (void)
 }
 
 
-bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
+bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toWrite)
 {
     if (IS_IIC_BUSY())
         return _FALSE;
@@ -58,10 +58,11 @@ bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
     iic_data.currCB = iic_write;
     iic_data.dataIdx = 0;
     
+    iic_commData.dataSize = toWrite-1;		// mandar 1 a writear equivale al 0 en todo lo otro
     IIC_SET_AS_TX();
     
     IIC_START();
-    IIC_SEND(slvAddress << 1 + WRITE);
+    IIC_SEND((slvAddress << 1) + WRITE);
     
     return _TRUE;
 }
@@ -77,12 +78,12 @@ bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toRead)
     iic_data.currCB = iic_read_start;
     iic_data.dataIdx = 0;
     
-    iic_commData.dataSize = toRead;
+    iic_commData.dataSize = toRead-1;	// toRead qué sentido tiene que sea 0? restale uno acá y listo
     
     IIC_SET_AS_TX();
     
     IIC_START();
-    IIC_SEND(slvAddress << 1 + READ);
+    IIC_SEND((slvAddress << 1) + READ);		//precedence
     
     return _TRUE;
 }
@@ -118,7 +119,7 @@ void interrupt iic0_srv (void)
 
 void iic_read_start (void)
 {	
-	if (iic_commData.dataSize == 0)
+	if (iic_commData.dataSize == 0)		// Acá pregunto por 0, a read le mando 1 porque quiero leer 1...	
 	{
 		IIC_NOT_ACKNOWLEDGE_DATA();
 		iic_data.currCB = iic_data.eotCB;

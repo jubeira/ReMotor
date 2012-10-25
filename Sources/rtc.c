@@ -3,6 +3,8 @@
 #include "timers.h"
 
 #define RTC_ADDRESS 0b01101000
+#define RTC_DATA_SIZE (8)
+#define RTC_CONTROL_CONFIG(a) (a = 0b00010000)	// 1Hz, output enabled
 
 #define BCD_DATE 0x0F
 #define BCD_UNI 0x0F
@@ -36,7 +38,7 @@ rtc_data_T rtc_data;
 struct
 {
 	bool init;
-	u8 startUpStage.
+	u8 startUpStage;
 	s8 timId;
 	rtc_ptr extCB;
 } rtc_intData = {_FALSE, 0, INVALID_TIMER, NULL};
@@ -47,7 +49,7 @@ void rtc_setRegAdd (RTC_REG_ADD reg, rtc_ptr cb);
 void rtc_storeReceivedData (void);
 
 
-void rtc_init (void)
+void rtc_init (bool setTime)
 {
 	if (rtc_intData.init == _FALSE)
 	{
@@ -59,12 +61,21 @@ void rtc_init (void)
 		rtc_intData.extCB = NULL;
 		
 		rtc_intData.startUpStage = 0;
-		rtc_startUp();
+		rtc_startUp(setTime);
 	}
 	
 	return;
 }
 
+void rtc_setTimeAndInit(decimal sec, decimal min, decimal h, decimal date, 
+									decimal month, decimal year, rtc_day d, rtc_hourFormat f)
+{
+	rtc_setInternalTime(decimal sec, decimal min, decimal h, decimal date, 
+									decimal month, decimal year, rtc_day d, rtc_hourFormat f);
+	
+	rtc_init(_TRUE);
+
+}
 
 void rtc_enable (void)
 {
@@ -84,6 +95,8 @@ void rtc_disable (void)
 
 void rtc_intSrv (void)
 {
+	// Si falla puedo hacer algo o mando un null y fuck you?
+	iic_receive (RTC_ADDRESS, rtc_storeReceivedData, iic_ptr commFailedCB, RTC_DATA_SIZE);
 	//hago un read
 	//guardo la data
 	//cuando termino llamo al callback
@@ -131,44 +144,77 @@ void rtc_storeReceivedData (void)
 	return;   
 }
 
-
-void rtc_startUp(void)
+void rtc_setInternalTime(decimal sec, decimal min, decimal h, decimal date, 
+									decimal month, decimal year, rtc_day d, rtc_hourFormat f)
 {
-	guardar toda la data
-	setearle la configuracion en lo que quiero (sin tocar la data)
-	
-	
+	//check data in
+	if (sec.deca <= 5 && sec.uni <= 9)
+		rtc_data.seconds = sec;
+	if (min.deca <= 5 && min.uni <=9)
+    	rtc_data.minutes = min;
+	if (f == RTC_12_HOUR && (decimal2u8(h) <= 12))
+		rtc_data.hours = h;
+	else if (f == RTC_24_HOUR && (decimal2u8(h) <= 24))
+		rtc_data.hours = h;
+	if (decimal2u8(date) <=31)
+    	rtc_data.date = date;		// bue bue, días del mes
+    if (decimal2u8(month) <= 12)
+    	rtc_data.month = month;
+    if (decimal2u8(year) <= 99)
+    	rtc_data.year = year;
+    rtc_data.day = d;
+    
+    rtc_data.format = f;
+    return;
+}
+
+
+u8 decimal2u8(decimal d)
+{
+	return d.deca*10+d.uni;
+}
+
+
+void rtc_startUp (bool setTime)
+{	
 	switch (rtc_intData.startUpStage)
 	{
 	case 0:
 		// Preparo la lectura
 		rtc_setRegAdd(0,rtc_startUp);
 		rtc_intData.startUpStage++;
-		
-		break;
-		
-	case 1:
-		// Leo los 8 registros
-		iic_receive(RTC_ADDRESS,rtc_startup,NULL,7);
-		
-		break;
-		
-	case 2:
-	
-		break;
-		
-	case 3:
-		// Escribo la configuración
-		
-		rtc_setRegAdd(0,rtc_startUp);
-		rtc_intData.startUpStage++;
-		
-		break;
-		
-	case 4:
-		tim_enableInterrupts(rtc_data.timId);
-		rtc_intData.init = _TRUE;			
 
+		break;
+
+	case 1:
+		// Leo los 7 registros que contienen información de hora
+		if(setTime == _TRUE)
+			iic_send(RTC_ADDRESS, rtc_startUp, NULL);
+		else
+			iic_receive(RTC_ADDRESS,rtc_startUp,NULL, 7); // Ver
+			
+		rtc_intData.startUpStage++;
+
+		break;
+
+	case 2:
+		// Guardo la información recibida, y configuro las settings (sin cambiar el resto de la data)
+		// si estaba escribiendo y terminé de escribir, ya estoy listo
+		if (setTime == _TRUE)
+		{
+			rtc_intData.init = _TRUE;
+			return;
+		}
+		rtc_storeReceivedData();
+		rtc_setAllRegisters(rtc_startUp);
+		rtc_intData.startUpStage++;
+
+		break;
+
+	case 3:
+		// Recién ahora está inicializado al dispositivo, se habilitan las interrupciones por el clock del RTC
+		rtc_enable();			
+		rtc_intData.init = _TRUE;
 		break;
 	}
 
