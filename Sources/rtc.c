@@ -16,6 +16,9 @@
 #define BCD_UNI_SHIFT 0
 #define BCD_DECA_SHIFT 4
 
+#define BCD_HOUR_FORMAT 0x40
+#define BCD_HOUR_FORMAT_SHIFT 6
+
 typedef enum
 {
 	RTC_SEC_REG,
@@ -33,9 +36,10 @@ rtc_data_T rtc_data;
 struct
 {
 	bool init;
+	u8 startUpStage.
 	s8 timId;
 	rtc_ptr extCB;
-} rtc_intData = {_FALSE, INVALID_TIMER, NULL};
+} rtc_intData = {_FALSE, 0, INVALID_TIMER, NULL};
 
 
 void rtc_intSrv (void);
@@ -47,18 +51,15 @@ void rtc_init (void)
 {
 	if (rtc_intData.init == _FALSE)
 	{
-		rtc_intData.init = _TRUE;
-		
 		iic_init();
-		//hablar con el rtc, setearle la configuracion (24 horas, generar cuadrada de 1hz)
-		//pedirle la hora
-		//guardar la hora
-		
+
 		tim_init();
 		rtc_intData.timId = tim_getTimer(TIM_IC,rtc_intSrv,NULL);
+
+		rtc_intData.extCB = NULL;
 		
-		
-		rtc_intData.extCB = NULL;		
+		rtc_intData.startUpStage = 0;
+		rtc_startUp();
 	}
 	
 	return;
@@ -67,7 +68,8 @@ void rtc_init (void)
 
 void rtc_enable (void)
 {
-	tim_enableInterrupts(rtc_intData.timId);
+	tim_enableInterrupts(rtc_intData.timId);
+
 	return;
 }
 
@@ -85,8 +87,6 @@ void rtc_intSrv (void)
 	//hago un read
 	//guardo la data
 	//cuando termino llamo al callback
-	if (rtc_intData.extCB != NULL)
-		(*rtc_intData.extCB)();
 	
 	return;
 }
@@ -125,5 +125,52 @@ void rtc_storeReceivedData (void)
 	rtc_data.year.uni = (iic_commData[RTC_YEAR_REG] & BCD_UNI) >> BCD_UNI_SHIFT;
 	rtc_data.year.deca = (iic_commData[RTC_YEAR_REG] & BCD_YEAR_DECA) >> BCD_DECA_SHIFT;
 	
-    
+	if (rtc_intData.extCB != NULL)
+		(*rtc_intData.extCB)();
+	
+	return;   
+}
+
+
+void rtc_startUp(void)
+{
+	guardar toda la data
+	setearle la configuracion en lo que quiero (sin tocar la data)
+	
+	
+	switch (rtc_intData.startUpStage)
+	{
+	case 0:
+		// Preparo la lectura
+		rtc_setRegAdd(0,rtc_startUp);
+		rtc_intData.startUpStage++;
+		
+		break;
+		
+	case 1:
+		// Leo los 8 registros
+		iic_receive(RTC_ADDRESS,rtc_startup,NULL,7);
+		
+		break;
+		
+	case 2:
+	
+		break;
+		
+	case 3:
+		// Escribo la configuración
+		
+		rtc_setRegAdd(0,rtc_startUp);
+		rtc_intData.startUpStage++;
+		
+		break;
+		
+	case 4:
+		tim_enableInterrupts(rtc_data.timId);
+		rtc_intData.init = _TRUE;			
+
+		break;
+	}
+
+	return;
 }

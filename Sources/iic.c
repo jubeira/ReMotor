@@ -67,7 +67,7 @@ bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
 }
 
 
-bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
+bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toRead)
 {
 	if (IS_IIC_BUSY())
         return _FALSE;
@@ -77,6 +77,8 @@ bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
     iic_data.currCB = iic_read_start;
     iic_data.dataIdx = 0;
     
+    iic_commData.dataSize = toRead;
+
     IIC_SET_AS_TX();
     
     IIC_START();
