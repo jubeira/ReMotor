@@ -20,12 +20,6 @@ typedef enum
     RTC_SUNDAY
 } rtc_day;
 
-typedef enum 
-{
-	RTC_12_HOUR,
-	RTC_24_HOUR
-} rtc_hourFormat;
-
 typedef struct 
 {
     decimal seconds;
@@ -35,7 +29,6 @@ typedef struct
     decimal month;
     decimal year;
     rtc_day day;
-    rtc_hourFormat format;
 } rtc_data_T;
 
 extern rtc_data_T rtc_data;
@@ -47,5 +40,6 @@ void rtc_init (void);
 void rtc_enable (void);
 void rtc_disable (void);
 void rtc_assignCB (rtc_ptr rtc_cb);
+void rtc_setAllRegisters(rtc_ptr cb);
 
 #endif

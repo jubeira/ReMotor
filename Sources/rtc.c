@@ -21,17 +21,23 @@
 #define BCD_HOUR_FORMAT 0x40
 #define BCD_HOUR_FORMAT_SHIFT 6
 
-typedef enum
-{
-	RTC_SEC_REG,
-	RTC_MIN_REG,
- 	RTC_HOUR_REG, 
- 	RTC_DAY_REG,
- 	RTC_DATE_REG, 
- 	RTC_MONTH_REG, 
- 	RTC_YEAR_REG, 
- 	RTC_CONTROL_REG
-} RTC_REG_ADD;
+#define RTC_24_HOUR_FORMAT 0
+#define RTC_HOUR_FORMAT_SHIFT 6
+#define RTC_SQWE_ENABLE 1
+#define RTC_SQWE_SHIFT 4
+#define RTC_RS0_1HZ 0
+#define RTC_RS0_SHIFT 0
+#define RTC_RS1_1HZ 0
+#define RTC_RS1_SHIFT 1
+
+#define RTC_SEC_REG 0x00
+#define RTC_MIN_REG 0x01
+#define RTC_HOUR_REG 0x02 
+#define RTC_DAY_REG 0x03
+#define RTC_DATE_REG 0x04 
+#define RTC_MONTH_REG 0x05 
+#define RTC_YEAR_REG 0x06 
+#define RTC_CONTROL_REG 0x07
 
 rtc_data_T rtc_data;
 
@@ -44,10 +50,11 @@ struct
 } rtc_intData = {_FALSE, 0, INVALID_TIMER, NULL};
 
 
-void rtc_intSrv (void);
-void rtc_setRegAdd (RTC_REG_ADD reg, rtc_ptr cb);
+void rtc_startUp (void);
+void rtc_setRegAdd (u8 reg, rtc_ptr cb);
 void rtc_storeReceivedData (void);
-
+void rtc_intSrv (void);
+void rtc_intAux (void);
 
 void rtc_init (bool setTime)
 {
@@ -77,22 +84,6 @@ void rtc_setTimeAndInit(decimal sec, decimal min, decimal h, decimal date,
 
 }
 
-void rtc_enable (void)
-{
-	tim_enableInterrupts(rtc_intData.timId);
-
-	return;
-}
-
-
-void rtc_disable (void)
-{
-	tim_disableInterrupts(rtc_intData.timId);
-
-	return;
-}
-
-
 void rtc_intSrv (void)
 {
 	// Si falla puedo hacer algo o mando un null y fuck you?
@@ -105,11 +96,11 @@ void rtc_intSrv (void)
 }
 
 
-void rtc_setRegAdd (RTC_REG_ADD reg, rtc_ptr cb)
+void rtc_setRegAdd (u8 reg, rtc_ptr cb)
 {
 	iic_commData.data[0] = reg;
 	iic_commData.dataSize = 0;
-	
+
 	iic_send(RTC_ADDRESS,cb,NULL);
 	
 	return;
@@ -118,14 +109,14 @@ void rtc_setRegAdd (RTC_REG_ADD reg, rtc_ptr cb)
 
 void rtc_storeReceivedData (void)
 {
-	rtc_data.seconds.uni = (iic_commData[RTC_SEC_REG] & BCD_UNI) >> BCD_UNI_SHIFT;
+	rtc_data.seconds.uni = (iic_commData[RTC_SEC_REG] & 0x10) >> BCD_UNI_SHIFT;
 	rtc_data.seconds.deca = (iic_commData[RTC_SEC_REG] & BCD_SEG_DECA) >> BCD_DECA_SHIFT;
 	
 	rtc_data.minutes.uni = (iic_commData[RTC_MIN_REG] & BCD_UNI) >> BCD_UNI_SHIFT;
 	rtc_data.minutes.deca = (iic_commData[RTC_MIN_REG] & BCD_MIN_DECA) >> BCD_DECA_SHIFT;
 	
 	rtc_data.hours.uni = (iic_commData[RTC_HOUR_REG] & BCD_UNI) >> BCD_UNI_SHIFT;
-	rtc_data.hours.deca = (iic_commData[RTC_HOUR_REG] & BCD_HOUR_DECA) >> BCD_DECA_SHIFT;
+	rtc_data.hours.deca = (iic_commData[RTC_HOUR_REG] & BCD_HOUR_DECA) >> BCD_DECA_SHIFT; //Se asume formato 24 horas
 	
 	rtc_data.date.uni = (iic_commData[RTC_DATE_REG] & BCD_UNI) >> BCD_UNI_SHIFT;
 	rtc_data.date.deca = (iic_commData[RTC_DATE_REG] & BCD_DATE_DECA) >> BCD_DECA_SHIFT;
@@ -218,5 +209,53 @@ void rtc_startUp (bool setTime)
 		break;
 	}
 
+void rtc_setAllRegisters (rtc_ptr cb)
+{
+	// Registro inicial de escritura
+	iic_commData.data[0] = RTC_SEC_REG;
+	iic_commData.data[RTC_SEC_REG] = rtc_data.seconds.deca << BCD_DECA_SHIFT + rtc_data.seconds.uni << BCD_UNI_SHIFT;
+	iic_commData.data[RTC_MIN_REG] = rtc_data.minutes.deca << BCD_DECA_SHIFT + rtc_data.minutes.uni << BCD_UNI_SHIFT;
+	iic_commData.data[RTC_HOUR_REG] = rtc_data.hours.deca << BCD_DECA_SHIFT + rtc_data.hours.uni << BCD_UNI_SHIFT
+										+ RTC_24_HOUR_FORMAT << RTC_HOUR_FORMAT_SHIFT;
+	iic_commData.data[RTC_DATE_REG] = rtc_data.date.deca << BCD_DECA_SHIFT + rtc_data.date.uni << BCD_UNI_SHIFT;
+	iic_commData.data[RTC_DAY_REG] = rtc_data.day.deca << BCD_DECA_SHIFT + rtc_data.day.uni << BCD_UNI_SHIFT;
+	iic_commData.data[RTC_MONTH_REG] = rtc_data.month.deca << BCD_DECA_SHIFT + rtc_data.month.uni << BCD_UNI_SHIFT;
+	iic_commData.data[RTC_YEAR_REG] = rtc_data.year.deca << BCD_DECA_SHIFT + rtc_data.year.uni << BCD_UNI_SHIFT;
+	iic_commData.data[RTC_CONTROL_REG] = RTC_SQWE_ENABLE << RTC_SQWE_SHIFT + RTC_RS0_1HZ << RTC_RS0_SHIFT + RTC_RS1_1HZ << RTC_RS1_SHIFT;
+	
+	iic_commData.dataSize = 7;
+	
+	iic_send(RTC_ADDRESS,cb,NULL);
+	
+	return;
+}
+
+void rtc_enable (void)
+{
+	tim_enableInterrupts(rtc_intData.timId);
+
+	return;
+}
+
+
+void rtc_disable (void)
+{
+	tim_disableInterrupts(rtc_intData.timId);
+
+	return;
+}
+
+
+void rtc_intSrv (void)
+{
+	rtc_setRegAdd(0,rtc_intAux);
+	
+	return;
+}
+
+void rtc_intAux (void)
+{
+	iic_receive(RTC_ADDRESS,rtc_storeReceivedData,NULL,6);	//ver que onda
+	
 	return;
 }
