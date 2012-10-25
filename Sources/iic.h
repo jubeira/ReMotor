@@ -17,6 +17,6 @@ extern iic_commData_T iic_commData;
 
 void iic_init (void);
 bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB);
-bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB);
+bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toRead);
 
 #endif

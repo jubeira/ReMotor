@@ -9,17 +9,25 @@ typedef struct
     u8 deca;
 } decimal;
 
-typedef enum {
-    MONDAY,
-    TUESDAY,
-    WEDNESDAY,
-    THURSDAY,
-    FRIDAY,
-    SATURDAY,
-    SUNDAY
+typedef enum 
+{
+    RTC_MONDAY,
+    RTC_TUESDAY,
+    RTC_WEDNESDAY,
+    RTC_THURSDAY,
+    RTC_FRIDAY,
+    RTC_SATURDAY,
+    RTC_SUNDAY
 } rtc_day;
 
-typedef struct {
+typedef enum 
+{
+	RTC_12_HOUR,
+	RTC_24_HOUR
+} rtc_hourFormat;
+
+typedef struct 
+{
     decimal seconds;
     decimal minutes;
     decimal hours;
@@ -27,6 +35,7 @@ typedef struct {
     decimal month;
     decimal year;
     rtc_day day;
+    rtc_hourFormat format;
 } rtc_data_T;
 
 extern rtc_data_T rtc_data;
