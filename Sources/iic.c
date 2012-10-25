@@ -48,7 +48,7 @@ void iic_init (void)
 }
 
 
-bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toWrite)
+bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
 {
     if (IS_IIC_BUSY())
         return _FALSE;
@@ -58,7 +58,8 @@ bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toWrite)
     iic_data.currCB = iic_write;
     iic_data.dataIdx = 0;
     
-    iic_commData.dataSize = toWrite-1;		// mandar 1 a writear equivale al 0 en todo lo otro
+    iic_commData.dataSize--;
+    
     IIC_SET_AS_TX();
     
     IIC_START();
@@ -78,7 +79,7 @@ bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toRead)
     iic_data.currCB = iic_read_start;
     iic_data.dataIdx = 0;
     
-    iic_commData.dataSize = toRead-1;	// toRead qué sentido tiene que sea 0? restale uno acá y listo
+    iic_commData.dataSize = toRead-1;
     
     IIC_SET_AS_TX();
     

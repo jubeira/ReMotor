@@ -23,9 +23,12 @@ void main(void)
 
 void init (void)
 {
+	// Modulos que no requieren interrupciones para inicializar
 	ir_init();
-	
+
 	_asm cli;
+	// Modulos que sí requieren interrupciones para inicializar	
+	rtc_init();
 }
 
 /* **********************************************************************

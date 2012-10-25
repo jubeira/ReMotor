@@ -56,9 +56,10 @@ void rtc_storeReceivedData (void);
 void rtc_intSrv (void);
 void rtc_intAux (void);
 
-void rtc_init (bool setTime)
+
+void rtc_init (void)
 {
-	if (rtc_intData.init == _FALSE)
+	if (rtc_intData.init == _FALSE))
 	{
 		iic_init();
 
@@ -68,11 +69,55 @@ void rtc_init (bool setTime)
 		rtc_intData.extCB = NULL;
 		
 		rtc_intData.startUpStage = 0;
-		rtc_startUp(setTime);
+		rtc_startUp();
+		
+		while (rtc_intData.init != TRUE)
+			;
 	}
 	
 	return;
 }
+
+
+void rtc_startUp (void)
+{	
+	switch (rtc_intData.startUpStage)
+	{
+	case 0:
+		// Preparo la lectura
+		rtc_setRegAdd(RTC_SEC_REG,rtc_startUp);
+		rtc_intData.startUpStage++;
+
+		break;
+
+	case 1:
+		// Leo los 7 registros que contienen información de hora
+		iic_receive(RTC_ADDRESS,rtc_startUp,NULL, 7);
+			
+		rtc_intData.startUpStage++;
+
+		break;
+
+	case 2:
+		// Guardo la información recibida, y configuro las settings (sin cambiar el resto de la data)
+		rtc_storeReceivedData();
+		rtc_setAllRegisters(rtc_startUp);
+		rtc_intData.startUpStage++;
+
+		break;
+
+	case 3:
+		// Recién ahora está inicializado al dispositivo, se habilitan las interrupciones por el clock del RTC
+		rtc_enable();			
+		
+		rtc_intData.init = _TRUE;
+		
+		break;
+	}
+	
+	return;
+}
+
 
 void rtc_setTimeAndInit(decimal sec, decimal min, decimal h, decimal date, 
 									decimal month, decimal year, rtc_day d, rtc_hourFormat f)
@@ -84,22 +129,11 @@ void rtc_setTimeAndInit(decimal sec, decimal min, decimal h, decimal date,
 
 }
 
-void rtc_intSrv (void)
-{
-	// Si falla puedo hacer algo o mando un null y fuck you?
-	iic_receive (RTC_ADDRESS, rtc_storeReceivedData, iic_ptr commFailedCB, RTC_DATA_SIZE);
-	//hago un read
-	//guardo la data
-	//cuando termino llamo al callback
-	
-	return;
-}
-
 
 void rtc_setRegAdd (u8 reg, rtc_ptr cb)
 {
 	iic_commData.data[0] = reg;
-	iic_commData.dataSize = 0;
+	iic_commData.dataSize = 1;
 
 	iic_send(RTC_ADDRESS,cb,NULL);
 	
@@ -166,69 +200,28 @@ u8 decimal2u8(decimal d)
 }
 
 
-void rtc_startUp (bool setTime)
-{	
-	switch (rtc_intData.startUpStage)
-	{
-	case 0:
-		// Preparo la lectura
-		rtc_setRegAdd(0,rtc_startUp);
-		rtc_intData.startUpStage++;
-
-		break;
-
-	case 1:
-		// Leo los 7 registros que contienen información de hora
-		if(setTime == _TRUE)
-			iic_send(RTC_ADDRESS, rtc_startUp, NULL);
-		else
-			iic_receive(RTC_ADDRESS,rtc_startUp,NULL, 7); // Ver
-			
-		rtc_intData.startUpStage++;
-
-		break;
-
-	case 2:
-		// Guardo la información recibida, y configuro las settings (sin cambiar el resto de la data)
-		// si estaba escribiendo y terminé de escribir, ya estoy listo
-		if (setTime == _TRUE)
-		{
-			rtc_intData.init = _TRUE;
-			return;
-		}
-		rtc_storeReceivedData();
-		rtc_setAllRegisters(rtc_startUp);
-		rtc_intData.startUpStage++;
-
-		break;
-
-	case 3:
-		// Recién ahora está inicializado al dispositivo, se habilitan las interrupciones por el clock del RTC
-		rtc_enable();			
-		rtc_intData.init = _TRUE;
-		break;
-	}
-
 void rtc_setAllRegisters (rtc_ptr cb)
 {
 	// Registro inicial de escritura
 	iic_commData.data[0] = RTC_SEC_REG;
-	iic_commData.data[RTC_SEC_REG] = rtc_data.seconds.deca << BCD_DECA_SHIFT + rtc_data.seconds.uni << BCD_UNI_SHIFT;
-	iic_commData.data[RTC_MIN_REG] = rtc_data.minutes.deca << BCD_DECA_SHIFT + rtc_data.minutes.uni << BCD_UNI_SHIFT;
-	iic_commData.data[RTC_HOUR_REG] = rtc_data.hours.deca << BCD_DECA_SHIFT + rtc_data.hours.uni << BCD_UNI_SHIFT
-										+ RTC_24_HOUR_FORMAT << RTC_HOUR_FORMAT_SHIFT;
-	iic_commData.data[RTC_DATE_REG] = rtc_data.date.deca << BCD_DECA_SHIFT + rtc_data.date.uni << BCD_UNI_SHIFT;
-	iic_commData.data[RTC_DAY_REG] = rtc_data.day.deca << BCD_DECA_SHIFT + rtc_data.day.uni << BCD_UNI_SHIFT;
-	iic_commData.data[RTC_MONTH_REG] = rtc_data.month.deca << BCD_DECA_SHIFT + rtc_data.month.uni << BCD_UNI_SHIFT;
-	iic_commData.data[RTC_YEAR_REG] = rtc_data.year.deca << BCD_DECA_SHIFT + rtc_data.year.uni << BCD_UNI_SHIFT;
-	iic_commData.data[RTC_CONTROL_REG] = RTC_SQWE_ENABLE << RTC_SQWE_SHIFT + RTC_RS0_1HZ << RTC_RS0_SHIFT + RTC_RS1_1HZ << RTC_RS1_SHIFT;
 	
-	iic_commData.dataSize = 7;
+	iic_commData.data[1] = rtc_data.seconds.deca << BCD_DECA_SHIFT + rtc_data.seconds.uni << BCD_UNI_SHIFT;
+	iic_commData.data[2] = rtc_data.minutes.deca << BCD_DECA_SHIFT + rtc_data.minutes.uni << BCD_UNI_SHIFT;
+	iic_commData.data[3] = rtc_data.hours.deca << BCD_DECA_SHIFT + rtc_data.hours.uni << BCD_UNI_SHIFT
+										+ RTC_24_HOUR_FORMAT << RTC_HOUR_FORMAT_SHIFT;
+	iic_commData.data[4] = rtc_data.date.deca << BCD_DECA_SHIFT + rtc_data.date.uni << BCD_UNI_SHIFT;
+	iic_commData.data[5] = rtc_data.day.deca << BCD_DECA_SHIFT + rtc_data.day.uni << BCD_UNI_SHIFT;
+	iic_commData.data[6] = rtc_data.month.deca << BCD_DECA_SHIFT + rtc_data.month.uni << BCD_UNI_SHIFT;
+	iic_commData.data[7] = rtc_data.year.deca << BCD_DECA_SHIFT + rtc_data.year.uni << BCD_UNI_SHIFT;
+	iic_commData.data[8] = RTC_SQWE_ENABLE << RTC_SQWE_SHIFT + RTC_RS0_1HZ << RTC_RS0_SHIFT + RTC_RS1_1HZ << RTC_RS1_SHIFT;
+	
+	iic_commData.dataSize = 9;
 	
 	iic_send(RTC_ADDRESS,cb,NULL);
 	
 	return;
 }
+
 
 void rtc_enable (void)
 {
@@ -248,14 +241,15 @@ void rtc_disable (void)
 
 void rtc_intSrv (void)
 {
-	rtc_setRegAdd(0,rtc_intAux);
+	rtc_setRegAdd(RTC_SEC_REG,rtc_intAux);
 	
 	return;
 }
 
+
 void rtc_intAux (void)
 {
-	iic_receive(RTC_ADDRESS,rtc_storeReceivedData,NULL,6);	//ver que onda
+	iic_receive(RTC_ADDRESS,rtc_storeReceivedData,NULL,7);
 	
 	return;
 }
