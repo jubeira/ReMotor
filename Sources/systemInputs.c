@@ -1,16 +1,16 @@
+#define _COMMAND_PRIVILEGED
+
 #include "systemInputs.h"
+#include "ir.h"
+#include "rc5table.h"
 
-#define COMMAND_PRIVILEGED
-
-static commandData_T commandData = {0, 0, _FALSE};
+commandData_T commandData = {0, 0, _FALSE};
 
 
 void step_key2command(u8 key);
 void pwm_key2command(u8 key);
 
 u8 filterInt (s16 _byte);
-bool isDigit(u8 _byte);
-u16 pow10(u8 exp);
 
 bool ir_getCommand(runMode mode)
 {
@@ -32,9 +32,9 @@ bool ir_getCommand(runMode mode)
 				if ((auxWord = ir_pop()) < 0) // < 0 es un error de pop (nothing to pop)
 					break;			// newCommand queda false
 				
-				filteredByte = filterInt (auxWord);
+				filteredByte = filterInt ((u8) auxWord);
 				
-				if (isDigit(auxWord))
+				if (isDigit(filteredByte))
 				{
 					if (commandData.quantity >= 100)
 						commandData.quantity %= 100;
@@ -42,7 +42,7 @@ bool ir_getCommand(runMode mode)
 				}
 				else
 				{
-					step_key2command(auxWord);
+					step_key2command(filteredByte);
 					if (commandData.type = NO_COMMAND)
 						break;	// newCommand queda false
 						
@@ -54,7 +54,7 @@ bool ir_getCommand(runMode mode)
 			if ((auxWord = ir_pop()) < 0)
 				break;						// newCommand queda false.
 			
-			filteredByte = filterInt (auxWord);
+			filteredByte = filterInt ((u8) auxWord);
 			
 			pwm_key2command(filteredByte);
 			if (commandData.type = NO_COMMAND)
@@ -71,42 +71,33 @@ bool ir_getCommand(runMode mode)
 }
 
 
-u16 pow10(u8 exp)
-{
-	if (exp != 0)
-		return 10*pow10(exp-1);
-	else 
-		return 1;
-}
-
-
 void step_key2command(u8 key)
 {
 	switch (key)
 	{	
-		case PLAY:
+		case RC5_PLAY:
 			commandData.quantity = 0;
 			commandData.type = RUN;
 			break;
-		case FAST_FORWARD:
+		case RC5_FF:
 			commandData.type = MOV_FWD;
 			break;
-		case REWIND:
+		case RC5_REW:
 			commandData.type = MOV_BWD;
 			break;
-		case STOP_BTN:
+		case RC5_STOP:
 			commandData.quantity = 0;
 			commandData.type = STOP;
 			break;
-		case VOL_UP:
+		case RC5_VOL_UP:
 			commandData.type = MOV_FWD;
 			commandData.quantity = 1;
 			break;
-		case VOL_DOWN:
+		case RC5_VOL_DOWN:
 			commandData.type = MOV_BWD;
 			commandData.quantity = 1;
 			break;
-		case MUTE:
+		case RC5_MUTE:
 			commandData.type = MODE_TOGGLE;
 			commandData.quantity = 1;		// Default period
 			break;
@@ -122,22 +113,22 @@ void step_key2command(u8 key)
 void pwm_key2command(u8 key)
 {
 	if (isDigit(key))
-		key = DIGIT;
+		key = RC5_DIGIT;
 	
 	switch (key)
 	{	
-		case VOL_UP:
+		case RC5_VOL_UP:
 			commandData.type = DUTY_UP;
 			break;
-		case VOL_DOWN:
+		case RC5_VOL_DOWN:
 			commandData.type = DUTY_DOWN;
 			break;
-		case MUTE:
+		case RC5_MUTE:
 			commandData.type = MODE_TOGGLE;
 			commandData.quantity = 0;
 			commandData.resetFlag = _TRUE;
 			break;
-		case DIGIT:
+		case RC5_DIGIT:
 			commandData.type = PERIOD_CHANGE;
 			commandData.quantity = key;
 			break;
@@ -148,15 +139,8 @@ void pwm_key2command(u8 key)
 	return;
 }
 
-u8 filterInt (s16 _byte)
-{
-	return ((u8)_byte &= ~(1<<7));
-}
 
-bool isDigit(u8 _byte)
+u8 filterInt (u8 _byte)
 {
-	if (_byte >= 0 && _byte <= 9)
-		return _TRUE;
-	else
-		return _FALSE;
+	return (_byte &= ~(1<<7));
 }

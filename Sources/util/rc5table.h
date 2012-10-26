@@ -12,6 +12,7 @@ enum {
 	RC5_7,
 	RC5_8,
 	RC5_9,
+	RC5_MUTE = 13,
     RC5_VOL_UP = 16,
 	RC5_VOL_DOWN,
 	RC5_CHANN_UP = 32,

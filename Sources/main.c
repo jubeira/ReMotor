@@ -13,8 +13,7 @@ void dispTime(void);
 void main(void)
 {	
 	init();
-	dispTime();
-	led(255);
+	
 	rtc_assignAutoUpdateCallback(dispTime);
 	
 	for(;;)
@@ -27,9 +26,9 @@ void dispTime(void)
 {
 	disp_ram[0] = rtc_data.minutes.deca+'0';
 	disp_ram[1] = rtc_data.minutes.uni+'0';
+	disp_att_ram[1].use_dot = 1;
 	disp_ram[2] = rtc_data.seconds.deca+'0';
 	disp_ram[3] = rtc_data.seconds.uni+'0';
-	disp_att_ram[1].use_dot = 1;
 	
 	return;
 }

@@ -251,7 +251,7 @@ s16 ir_flush(void)
 bool isDigit(u8 _byte)
 {
 	_byte &= ~(1<<7);
-	if (_byte >= 0 && _byte <= 9)
+	if (_byte <= 9)
 		return _TRUE;
 	else
 		return _FALSE;
