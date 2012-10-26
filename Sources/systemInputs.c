@@ -3,6 +3,10 @@
 #include "systemInputs.h"
 #include "ir.h"
 #include "rc5table.h"
+#include "kbd.h"
+
+#define KB_SHARP (KB_SPECIAL_R - '0')
+#define KB_ASTERISC (KB_SPECIAL_L - '0')
 
 commandData_T commandData = {0, 0, _FALSE};
 
@@ -29,16 +33,16 @@ bool ir_getCommand(runMode mode)
 		case STEPPER:
 			while (!newCommandFound)	
 			{
-				if ((auxWord = ir_pop()) < 0) // < 0 es un error de pop (nothing to pop)
-					break;			// newCommand queda false
+				if ((auxWord = ir_pop()) < 0) // < 0: (nothing to pop)
+					break;			// newCommand stays false
 				
 				filteredByte = filterInt ((u8) auxWord);
 				
 				if (isDigit(filteredByte))
 				{
 					if (commandData.quantity >= 100)
-						commandData.quantity %= 100;
-					commandData.quantity = commandData.quantity*10 + filteredByte;			// Quantity siempre queda; vuelve a 0 cuando encuentro algo
+						commandData.quantity %= 100;	// Take most significant digit out
+					commandData.quantity = commandData.quantity*10 + filteredByte;			
 				}
 				else
 				{
@@ -52,13 +56,17 @@ bool ir_getCommand(runMode mode)
 			break;
 		case PWM:
 			if ((auxWord = ir_pop()) < 0)
-				break;						// newCommand queda false.
-			
+			{
+				if ((auxWord = kb_read()) > 0)	// Check KB as second option
+					auxWord = auxWord - '0';
+				else
+					break;		// newCommand stays false.
+			}
 			filteredByte = filterInt ((u8) auxWord);
 			
 			pwm_key2command(filteredByte);
 			if (commandData.type = NO_COMMAND)
-				break;	// newCommand queda false
+				break;	// newCommand stays false
 			
 			newCommandFound = _TRUE;	
 			break;
@@ -117,10 +125,10 @@ void pwm_key2command(u8 key)
 	
 	switch (key)
 	{	
-		case RC5_VOL_UP:
+		case KB_SHARP: RC5_VOL_UP: 
 			commandData.type = DUTY_UP;
 			break;
-		case RC5_VOL_DOWN:
+		case KB_ASTERISC: RC5_VOL_DOWN:
 			commandData.type = DUTY_DOWN;
 			break;
 		case RC5_MUTE:
