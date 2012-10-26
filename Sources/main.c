@@ -8,18 +8,32 @@
 
 
 void init(void);
+void dispTime(void);
 
 void main(void)
 {	
 	init();
+	dispTime();
+	led(255);
+	rtc_assignAutoUpdateCallback(dispTime);
 	
 	for(;;)
 	{
-		s16 irData = ir_pop();
-		if (irData != IR_NO_COMMAND)
-			printf("%x\n",(u16)irData);
+		
 	}	
 }
+
+void dispTime(void)
+{
+	disp_ram[0] = rtc_data.minutes.deca+'0';
+	disp_ram[1] = rtc_data.minutes.uni+'0';
+	disp_ram[2] = rtc_data.seconds.deca+'0';
+	disp_ram[3] = rtc_data.seconds.uni+'0';
+	disp_att_ram[1].use_dot = 1;
+	
+	return;
+}
+
 
 void init (void)
 {
@@ -27,8 +41,9 @@ void init (void)
 	rti_init();
 	led_init();
 	display_init();
-	kb_init();
-	ir_init();
+
+	//kb_init();
+	//ir_init();
 
 	_asm cli;
 	// Modulos que si requieren interrupciones para inicializar	

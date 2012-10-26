@@ -3,7 +3,7 @@
 #include "iic.h"
 #include "timers.h"
 
-#define RTC_ADDRESS 0b01101000
+#define RTC_ADDRESS 0x68
 #define RTC_DATA_SIZE (8)
 #define RTC_CONTROL_CONFIG(a) (a = 0b00010000)	// 1Hz, output enabled
 
@@ -68,7 +68,7 @@ void rtc_init (void)
 
 		tim_init();
 		rtc_intData.timId = tim_getSpecificTimer(TIM_IC,rtc_intSrv,NULL,RTC_TIMER);
-
+		tim_setRisingEdge(rtc_intData.timId);
 		rtc_intData.extCB = NULL;
 		
 		rtc_intData.startUpStage = 0;
@@ -80,7 +80,6 @@ void rtc_init (void)
 	
 	return;
 }
-
 
 void rtc_startUp (void)
 {
@@ -144,7 +143,7 @@ void rtc_setRegAdd (u8 reg, rtc_ptr cb)
 
 void rtc_storeReceivedData (void)
 {
-	rtc_data.seconds.uni = (iic_commData.data[RTC_SEC_REG] & 0x10) >> BCD_UNI_SHIFT;
+	rtc_data.seconds.uni = (iic_commData.data[RTC_SEC_REG] & BCD_UNI) >> BCD_UNI_SHIFT;
 	rtc_data.seconds.deca = (iic_commData.data[RTC_SEC_REG] & BCD_SEG_DECA) >> BCD_DECA_SHIFT;
 	
 	rtc_data.minutes.uni = (iic_commData.data[RTC_MIN_REG] & BCD_UNI) >> BCD_UNI_SHIFT;
@@ -210,15 +209,15 @@ void rtc_sendLocalDataToDevice (rtc_ptr cb)
 	// Registro inicial de escritura
 	iic_commData.data[0] = RTC_SEC_REG;
 	
-	iic_commData.data[1] = rtc_data.seconds.deca << BCD_DECA_SHIFT + rtc_data.seconds.uni << BCD_UNI_SHIFT;
-	iic_commData.data[2] = rtc_data.minutes.deca << BCD_DECA_SHIFT + rtc_data.minutes.uni << BCD_UNI_SHIFT;
-	iic_commData.data[3] = rtc_data.hours.deca << BCD_DECA_SHIFT + rtc_data.hours.uni << BCD_UNI_SHIFT
-										+ RTC_24_HOUR_FORMAT << RTC_HOUR_FORMAT_SHIFT;
-	iic_commData.data[4] = rtc_data.date.deca << BCD_DECA_SHIFT + rtc_data.date.uni << BCD_UNI_SHIFT;
-	iic_commData.data[5] = rtc_data.day << BCD_UNI_SHIFT;
-	iic_commData.data[6] = rtc_data.month.deca << BCD_DECA_SHIFT + rtc_data.month.uni << BCD_UNI_SHIFT;
-	iic_commData.data[7] = rtc_data.year.deca << BCD_DECA_SHIFT + rtc_data.year.uni << BCD_UNI_SHIFT;
-	iic_commData.data[8] = RTC_SQWE_ENABLE << RTC_SQWE_SHIFT + RTC_RS0_1HZ << RTC_RS0_SHIFT + RTC_RS1_1HZ << RTC_RS1_SHIFT;
+	iic_commData.data[1] = (rtc_data.seconds.deca << BCD_DECA_SHIFT) + (rtc_data.seconds.uni << BCD_UNI_SHIFT);
+	iic_commData.data[2] = (rtc_data.minutes.deca << BCD_DECA_SHIFT) + (rtc_data.minutes.uni << BCD_UNI_SHIFT);
+	iic_commData.data[3] = (rtc_data.hours.deca << BCD_DECA_SHIFT) + (rtc_data.hours.uni << BCD_UNI_SHIFT)
+										+ (RTC_24_HOUR_FORMAT << RTC_HOUR_FORMAT_SHIFT);
+	iic_commData.data[4] = (rtc_data.date.deca << BCD_DECA_SHIFT) + (rtc_data.date.uni << BCD_UNI_SHIFT);
+	iic_commData.data[5] = (rtc_data.day << BCD_UNI_SHIFT);
+	iic_commData.data[6] = (rtc_data.month.deca << BCD_DECA_SHIFT) + (rtc_data.month.uni << BCD_UNI_SHIFT);
+	iic_commData.data[7] = (rtc_data.year.deca << BCD_DECA_SHIFT) + (rtc_data.year.uni << BCD_UNI_SHIFT);
+	iic_commData.data[8] = (RTC_SQWE_ENABLE << RTC_SQWE_SHIFT) + (RTC_RS0_1HZ << RTC_RS0_SHIFT) + (RTC_RS1_1HZ << RTC_RS1_SHIFT);
 	
 	iic_commData.dataSize = 9;
 	

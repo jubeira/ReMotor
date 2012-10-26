@@ -129,7 +129,7 @@ void endTransmission(void)
 	data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
 	data |= (((icData.receivedData & (1<<11)) ? 1 : 0)<<7);
 
-	if (icData.inputFlowControl.lastByte != data || icData.inputFlowControl.count == 0)
+/*	if (icData.inputFlowControl.lastByte != data || icData.inputFlowControl.count == 0)
 	{
 		ir_push(data);
 		
@@ -144,7 +144,7 @@ void endTransmission(void)
 		icData.inputFlowControl.count++;
 	}
 
-	resetTransmission();	
+*/	resetTransmission();	
 
 	return;
 }
@@ -253,7 +253,7 @@ s16 ir_flush(void)
 {
 	return cb_flush(&cBuffer);
 }
-
+/*
 
 s16 ir_getCommands(void)
 {
@@ -276,3 +276,4 @@ bool isDigit(u8 _byte)
 	else
 		return _FALSE;
 }
+*/
