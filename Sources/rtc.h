@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+typedef void (*rtc_ptr)(void);
+
 typedef struct 
 {
     u8 uni;
@@ -31,20 +33,23 @@ typedef struct
     rtc_day day;
 } rtc_data_T;
 
+
 #ifdef _RTC_PRIVILEGED
 extern rtc_data_T rtc_data;
 #else
 extern const rtc_data_T rtc_data;
 #endif
 
-typedef void (*rtc_ptr)(void);
 
 void rtc_init (void);
-void rtc_enable (void);
-void rtc_disable (void);
-void rtc_assignCB (rtc_ptr rtc_cb);
-void rtc_setAllRegisters(rtc_ptr cb);
+void rtc_enableAutoUpdate (void);
+void rtc_disableAutoUpdate (void);
+void rtc_assignAutoUpdateCallback (rtc_ptr cb);
+
+void rtc_setTime(decimal sec, decimal min, decimal h, decimal date, 
+						 decimal month, decimal year, rtc_day d);
 
 u8 decimal2u8(decimal d);
+
 
 #endif

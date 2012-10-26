@@ -18,6 +18,8 @@
 #define IIC_ACKNOWLEDGE_DATA() (IIC0_IBCR_TXAK = 0)
 #define IIC_NOT_ACKNOWLEDGE_DATA() (IIC0_IBCR_TXAK = 1)
 
+#define IIC_ARBITRATION_LOST 1
+
 iic_commData_T iic_commData;
 
 struct {
@@ -106,7 +108,7 @@ void interrupt iic0_srv (void)
     }
     
     // Deteccion de errores
-    if ((IIC0_IBSR_RXAK == 1) && (IIC0_IBCR_TX_RX == 1))
+    if ((IIC0_IBSR_RXAK == 1) && (IIC0_IBCR_TX_RX == 1) || (IIC0_IBSR_IBAL == IIC_ARBITRATION_LOST))
     {
 		IIC_STOP();
     	iic_data.currCB = iic_data.commFailedCB;
