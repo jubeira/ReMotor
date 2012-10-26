@@ -50,8 +50,6 @@ static struct
 static u8 irBuffer[BUFF_LENGTH];
 static cbuf cBuffer;
 
-static u8 commandBuffer[BUFF_LENGTH];
-static cbuf commandFifo;
 
 void startTransmission(void);
 void resetTransmission(void);
@@ -64,26 +62,6 @@ void ir_icSrv(void);
 void ir_ocSrv(void);
 void ir_ovfSrv(void);
 
-void store_1(void)
-{
-	icData.receivedData |= (1 << ((u8) (icData.currentBit)));
-	icData.currentBit--;
-}
-
-
-void store_0(void)
-{
-	icData.currentBit--;
-}
-
-bool isDigit(u8 _byte)
-{
-	_byte &= ~(1<<7);
-	if (_byte >= 0 && _byte <= 9)
-		return _TRUE;
-	else
-		return _FALSE;
-}
 
 void ir_init(void)
 {
@@ -100,7 +78,6 @@ void ir_init(void)
 	tim_enableOvfInterrupts(irTimers.icTimerId);
 	
 	cBuffer = cb_create(irBuffer, BUFF_LENGTH);
-	commandFifo = cb_create(commandBuffer, BUFF_LENGTH);
 	
 	resetTransmission();	
 	
@@ -260,17 +237,14 @@ s16 ir_flush(void)
 }
 
 
-s16 ir_getCommands(void)
+void store_1(void)
 {
-	s16 auxByte;
-	u8 numCount = 0;
-	
-	while ((auxByte = ir_pop()) > 0)	// < 0 es un error de pop
-	{
-		if (isByte(auxByte))
-	}
-	
+	icData.receivedData |= (1 << ((u8) (icData.currentBit)));
+	icData.currentBit--;
 }
 
 
-
+void store_0(void)
+{
+	icData.currentBit--;
+}
