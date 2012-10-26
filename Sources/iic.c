@@ -9,6 +9,7 @@
 #define WRITE 1
 
 #define IIC_MODULE_ENABLE() (IIC0_IBCR_IBEN = 1)
+#define IIC_SET_BAUD() (IIC0_IBFD = 0x5F)
 #define IIC_FLG_CLEAR() (IIC0_IBSR_IBIF = 1)
 #define IIC_INTERRUPT_ENABLE() (IIC0_IBCR_IBIE = 1)
 
@@ -39,7 +40,7 @@ void iic_init (void)
 	{
 		iic_data.init = _TRUE;
     	IIC_MODULE_ENABLE();
-    	//falta baud rate
+    	IIC_SET_BAUD();
     	IIC_FLG_CLEAR();
     	IIC_INTERRUPT_ENABLE();
     }
