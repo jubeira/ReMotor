@@ -64,26 +64,8 @@ void ir_icSrv(void);
 void ir_ocSrv(void);
 void ir_ovfSrv(void);
 
-void store_1(void)
-{
-	icData.receivedData |= (1 << ((u8) (icData.currentBit)));
-	icData.currentBit--;
-}
+bool isDigit(u8 _byte);
 
-
-void store_0(void)
-{
-	icData.currentBit--;
-}
-
-bool isDigit(u8 _byte)
-{
-	_byte &= ~(1<<7);
-	if (_byte >= 0 && _byte <= 9)
-		return _TRUE;
-	else
-		return _FALSE;
-}
 
 void ir_init(void)
 {
@@ -94,7 +76,7 @@ void ir_init(void)
 	
 	tim_init();
 	
-	irTimers.icTimerId = tim_getTimer(TIM_IC, ir_icSrv, ir_ovfSrv);
+	irTimers.icTimerId = tim_getSpecificTimer(TIM_IC, ir_icSrv, ir_ovfSrv, IR_IC_TIMER);
 	irTimers.ocTimerId = tim_getTimer(TIM_OC, ir_ocSrv, NULL);
 	
 	tim_enableOvfInterrupts(irTimers.icTimerId);
@@ -242,6 +224,19 @@ void ir_ovfSrv(void)
 }
 
 
+void store_1(void)
+{
+	icData.receivedData |= (1 << ((u8) (icData.currentBit)));
+	icData.currentBit--;
+}
+
+
+void store_0(void)
+{
+	icData.currentBit--;
+}
+
+
 s16 ir_push(u8 data)
 {
 	return cb_push(&cBuffer, data);
@@ -273,4 +268,11 @@ s16 ir_getCommands(void)
 }
 
 
-
+bool isDigit(u8 _byte)
+{
+	_byte &= ~(1<<7);
+	if (_byte >= 0 && _byte <= 9)
+		return _TRUE;
+	else
+		return _FALSE;
+}

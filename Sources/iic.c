@@ -9,7 +9,7 @@
 #define WRITE 1
 
 #define IIC_MODULE_ENABLE() (IIC0_IBCR_IBEN = 1)
-#define IIC_SET_BAUD() (IIC0_IBFD = 0x5F)
+#define IIC_SET_BAUD() (IIC0_IBFD = 0x9F)
 #define IIC_FLG_CLEAR() (IIC0_IBSR_IBIF = 1)
 #define IIC_INTERRUPT_ENABLE() (IIC0_IBCR_IBIE = 1)
 
@@ -34,12 +34,11 @@ void iic_init (void);
 void iic_read (void);
 void iic_read_start (void);
 void iic_write (void);
-void interrupt iic0_srv (void);
 
 void iic_init (void)
 {
 	if (iic_data.init == _FALSE)
-	{
+	{	
 		iic_data.init = _TRUE;
     	IIC_MODULE_ENABLE();
     	IIC_SET_BAUD();
@@ -53,7 +52,7 @@ void iic_init (void)
 
 bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
 {
-    if (IS_IIC_BUSY())
+    if (iic_isBusy())
         return _FALSE;
     
     iic_data.eotCB = eotCB;
@@ -67,14 +66,14 @@ bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
     
     IIC_START();
     IIC_SEND((slvAddress << 1) + WRITE);
-    
+
     return _TRUE;
 }
 
 
 bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toRead)
 {
-	if (IS_IIC_BUSY())
+	if (iic_isBusy())
         return _FALSE;
     
     iic_data.eotCB = eotCB;
@@ -93,10 +92,17 @@ bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toRead)
 }
 
 
+bool iic_isBusy(void)
+{
+	if (IIC0_IBSR_IBB == 1)
+		return _TRUE;
+	else
+		return _FALSE;
+}
+
+
 void interrupt iic0_srv (void)
 {
-	// Falta revisar si se perdio el arbitraje
-	
     IIC_FLG_CLEAR();   
     
     // Deteccion de eot

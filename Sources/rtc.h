@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#define RTC_TIMER 2
+
 typedef void (*rtc_ptr)(void);
 
 typedef struct 
