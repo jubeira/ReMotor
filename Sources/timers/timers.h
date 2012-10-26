@@ -13,7 +13,7 @@ typedef enum
 
 typedef void (*tim_ptr) (void);
 
-void timer_init (void);
+void tim_init (void);
 
 s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf);
 s8 tim_safeGetTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf);

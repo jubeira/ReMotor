@@ -19,7 +19,7 @@ struct {
 } tim_data;
 
 
-void timer_init(void) 
+void tim_init(void) 
 {
 	if (tim_data.init == _FALSE)
 	{

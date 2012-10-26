@@ -4,15 +4,16 @@
 #include "display.h"
 #include "kbd.h"
 #include "ir.h"
-#include "iic.h"
 #include <stdio.h>
 #include "mc9s12xdp512.h"
+#include "rtc.h"
 
 void init(void);
 
 void main(void)
 {
 	init();
+
 	for(;;)
 	{
 		s16 irData = ir_pop();
@@ -24,12 +25,13 @@ void main(void)
 void init (void)
 {
 	// Modulos que no requieren interrupciones para inicializar
-	ir_init();
+//	ir_init();
 
 	_asm cli;
-	// Modulos que sí requieren interrupciones para inicializar	
+	// Modulos que si requieren interrupciones para inicializar	
 	rtc_init();
 }
+
 
 /* **********************************************************************
  * Funciones de envÌo y recepciÛn de datos por puerto serie.

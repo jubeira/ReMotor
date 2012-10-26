@@ -31,8 +31,11 @@ typedef struct
     rtc_day day;
 } rtc_data_T;
 
+#ifdef _RTC_PRIVILEGED
 extern rtc_data_T rtc_data;
-
+#else
+extern const rtc_data_T rtc_data;
+#endif
 
 typedef void (*rtc_ptr)(void);
 

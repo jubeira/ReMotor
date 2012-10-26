@@ -73,7 +73,7 @@ void ir_init(void)
 	
 	icData.init = _TRUE;
 	
-	timer_init();
+	tim_init();
 	
 	irTimers.icTimerId = tim_getTimer(TIM_IC, ir_icSrv, ir_ovfSrv);
 	irTimers.ocTimerId = tim_getTimer(TIM_OC, ir_ocSrv, NULL);
