@@ -17,11 +17,18 @@ void tim_init (void);
 
 s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf);
 s8 tim_safeGetTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf);
+s8 tim_getSpecificTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf, u8 timNumber);
+
 void tim_freeTimer(s8 timId);
 
 void tim_setFallingEdge(s8 timId);
 void tim_setRisingEdge(s8 timId);
 void tim_setBothEdge(s8 timId);
+
+void tim_setOutputHigh(s8 timId);
+void tim_setOutputLow(s8 timId);
+void tim_setOutputToggle(s8 timId);
+void tim_disconnectOutput(s8 timId);
 
 void tim_enableInterrupts(s8 timId);
 void tim_disableInterrupts(s8 timId);

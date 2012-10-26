@@ -19,6 +19,10 @@ struct {
 } tim_data;
 
 
+void assignTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf, u8 i);
+tim_type tim_getType(u8 id);
+
+
 void tim_init(void) 
 {
 	if (tim_data.init == _FALSE)
@@ -45,6 +49,15 @@ void tim_init(void)
 	return;
 }
 
+s8 tim_getSpecificTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf, u8 timNumber)
+{
+	if (tim_data.isTimerUsed[timNumber] == _TRUE)
+		return INVALID_TIMER;
+	
+	assignTimer(reqType, cb, ovf, timNumber);
+
+}
+
 
 s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 {
@@ -52,19 +65,7 @@ s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 	for (i = 0; i < TIM_AMOUNT; i++)
 		if (tim_data.isTimerUsed[i] == _FALSE)
 		{
-			tim_disableInterrupts(i);
-			tim_clearFlag(i);
-			
-			tim_data.isTimerUsed[i] = _TRUE;
-			tim_data.cbArray[i] = cb;
-			tim_data.ovfArray[i] = ovf;
-			tim_data.ovfIntEnable[i] = _FALSE;
-			
-			if (reqType == TIM_OC)
-				SET_TIOS_OC(i);
-			else
-				SET_TIOS_IC(i);
-			
+			assignTimer(reqType, cb, ovf, i);
 			break;
 		}
 		
@@ -74,6 +75,22 @@ s8 tim_getTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf)
 	return i;	
 }
 
+void assignTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf, u8 i)
+{
+
+	tim_disableInterrupts(i);
+	tim_clearFlag(i);
+	
+	tim_data.isTimerUsed[i] = _TRUE;
+	tim_data.cbArray[i] = cb;
+	tim_data.ovfArray[i] = ovf;
+	tim_data.ovfIntEnable[i] = _FALSE;
+	
+	if (reqType == TIM_OC)
+		SET_TIOS_OC(i);
+	else
+		SET_TIOS_IC(i);
+}
 
 s8 tim_safeGetTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf) 
 {
@@ -105,10 +122,15 @@ void tim_freeTimer(s8 timId)
 	return;
 }
 
+tim_type tim_getType(u8 id)
+{
+	return ((TIOS &= 1 << id) ? TIM_OC : TIM_IC);
+}
+
 
 void tim_setFallingEdge(s8 timId)
 {
-	if(!IS_VALID_ID(timId))
+	if(!IS_VALID_ID(timId) || tim_getType(timId) == TIM_OC)
 		return;
 	
 	switch (timId)
@@ -153,7 +175,7 @@ void tim_setFallingEdge(s8 timId)
 
 void tim_setRisingEdge(s8 timId)
 {
-	if(!IS_VALID_ID(timId))
+	if(!IS_VALID_ID(timId) || tim_getType(timId) == TIM_OC)
 		return;
 	
 	switch (timId)
@@ -198,7 +220,7 @@ void tim_setRisingEdge(s8 timId)
 
 void tim_setBothEdge(s8 timId)
 {
-	if(!IS_VALID_ID(timId))
+	if(!IS_VALID_ID(timId) || tim_getType(timId) == TIM_OC)
 		return;
 	
 	switch (timId)
@@ -234,6 +256,183 @@ void tim_setBothEdge(s8 timId)
 		case 7:
 			TCTL3_EDG7A = 1;
 			TCTL3_EDG7B = 1;
+			break;
+	}
+	
+	return;
+}
+
+
+void tim_setOutputHigh(s8 timId)
+{
+	if(!IS_VALID_ID(timId) || tim_getType(timId) == TIM_IC)
+		return;
+	
+	switch (timId)
+	{
+		case 0:
+			TCTL2_OL0 = 1;
+			TCTL2_OM0 = 1;
+			break;
+		case 1:
+			TCTL2_OL1 = 1;
+			TCTL2_OM1 = 1;
+			break;
+		case 2:
+			TCTL2_OL2 = 1;
+			TCTL2_OM2 = 1;
+			break;
+		case 3:
+			TCTL2_OL3 = 1;
+			TCTL2_OM3 = 1;
+			break;
+		case 4:
+			TCTL1_OL4 = 1;
+			TCTL1_OM4 = 1;
+			break;
+		case 5:
+			TCTL1_OL5 = 1;
+			TCTL1_OM5 = 1;
+			break;
+		case 6:
+			TCTL1_OL6 = 1;
+			TCTL1_OM6 = 1;
+			break;
+		case 7:
+			TCTL1_OL7 = 1;
+			TCTL1_OM7 = 1;
+			break;
+	}
+	
+	return;
+}
+
+void tim_setOutputLow(s8 timId)
+{
+	if(!IS_VALID_ID(timId) || tim_getType(timId) == TIM_IC)
+		return;
+	
+	switch (timId)
+	{
+		case 0:
+			TCTL2_OL0 = 0;
+			TCTL2_OM0 = 1;
+			break;
+		case 1:
+			TCTL2_OL1 = 0;
+			TCTL2_OM1 = 1;
+			break;
+		case 2:
+			TCTL2_OL2 = 0;
+			TCTL2_OM2 = 1;
+			break;
+		case 3:
+			TCTL2_OL3 = 0;
+			TCTL2_OM3 = 1;
+			break;
+		case 4:
+			TCTL1_OL4 = 0;
+			TCTL1_OM4 = 1;
+			break;
+		case 5:
+			TCTL1_OL5 = 0;
+			TCTL1_OM5 = 1;
+			break;
+		case 6:
+			TCTL1_OL6 = 0;
+			TCTL1_OM6 = 1;
+			break;
+		case 7:
+			TCTL1_OL7 = 0;
+			TCTL1_OM7 = 1;
+			break;
+	}
+	
+	return;
+}
+
+void tim_setOutputToggle(s8 timId)
+{
+	if(!IS_VALID_ID(timId) || tim_getType(timId) == TIM_IC)
+		return;
+	
+	switch (timId)
+	{
+		case 0:
+			TCTL2_OL0 = 1;
+			TCTL2_OM0 = 0;
+			break;
+		case 1:
+			TCTL2_OL1 = 1;
+			TCTL2_OM1 = 0;
+			break;
+		case 2:
+			TCTL2_OL2 = 1;
+			TCTL2_OM2 = 0;
+			break;
+		case 3:
+			TCTL2_OL3 = 1;
+			TCTL2_OM3 = 0;
+			break;
+		case 4:
+			TCTL1_OL4 = 1;
+			TCTL1_OM4 = 0;
+			break;
+		case 5:
+			TCTL1_OL5 = 1;
+			TCTL1_OM5 = 0;
+			break;
+		case 6:
+			TCTL1_OL6 = 1;
+			TCTL1_OM6 = 0;
+			break;
+		case 7:
+			TCTL1_OL7 = 1;
+			TCTL1_OM7 = 0;
+			break;
+	}
+	
+	return;
+}
+
+void tim_disconnectOutput(s8 timId)
+{
+	if(!IS_VALID_ID(timId) || tim_getType(timId) == TIM_IC)
+		return;
+	
+	switch (timId)
+	{
+		case 0:
+			TCTL2_OL0 = 0;
+			TCTL2_OM0 = 0;
+			break;
+		case 1:
+			TCTL2_OL1 = 0;
+			TCTL2_OM1 = 0;
+			break;
+		case 2:
+			TCTL2_OL2 = 0;
+			TCTL2_OM2 = 0;
+			break;
+		case 3:
+			TCTL2_OL3 = 0;
+			TCTL2_OM3 = 0;
+			break;
+		case 4:
+			TCTL1_OL4 = 0;
+			TCTL1_OM4 = 0;
+			break;
+		case 5:
+			TCTL1_OL5 = 0;
+			TCTL1_OM5 = 0;
+			break;
+		case 6:
+			TCTL1_OL6 = 0;
+			TCTL1_OM6 = 0;
+			break;
+		case 7:
+			TCTL1_OL7 = 0;
+			TCTL1_OM7 = 0;
 			break;
 	}
 	

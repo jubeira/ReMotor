@@ -126,6 +126,9 @@ void endTransmission(void)
 	u8 data = icData.receivedData & (0x003F);
 	data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
 	data |= (((icData.receivedData & (1<<11)) ? 1 : 0)<<7);
+	// Revisar rebote
+	
+	
 	ir_push(data);
 
 	resetTransmission();	
