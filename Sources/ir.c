@@ -20,6 +20,8 @@
 
 #define PREVIOUS_BIT() ((icData.receivedData & (1<< ( (u8) ( icData.currentBit+1)))) ? 1 : 0) // +1: para volver al previous bit
 
+#define SAME_INPUT_SKIP (5)
+
 static struct 
 {
 	u16 lastEdge;
@@ -29,7 +31,14 @@ static struct
 	u8 overflowCnt;
 	bool icInhibit;
 	bool init;
-} icData = {0,0, 13, _FALSE, 0,_FALSE, _FALSE};
+	
+	struct 
+	{
+		u8 lastByte;
+		u8 count;
+	}inputFlowControl;
+	
+} icData = {0,0, 13, _FALSE, 0,_FALSE, _FALSE, {0,0}};
 
 static struct 
 {
@@ -41,6 +50,8 @@ static struct
 static u8 irBuffer[BUFF_LENGTH];
 static cbuf cBuffer;
 
+static u8 commandBuffer[BUFF_LENGTH];
+static cbuf commandFifo;
 
 void startTransmission(void);
 void resetTransmission(void);
@@ -52,6 +63,8 @@ void store_1(void);
 void ir_icSrv(void);
 void ir_ocSrv(void);
 void ir_ovfSrv(void);
+
+bool isDigit(u8 _byte);
 
 
 void ir_init(void)
@@ -68,7 +81,8 @@ void ir_init(void)
 	
 	tim_enableOvfInterrupts(irTimers.icTimerId);
 	
-	cBuffer = cb_create(irBuffer, BUFF_LENGTH);	
+	cBuffer = cb_create(irBuffer, BUFF_LENGTH);
+	commandFifo = cb_create(commandBuffer, BUFF_LENGTH);
 	
 	resetTransmission();	
 	
@@ -114,10 +128,21 @@ void endTransmission(void)
 	u8 data = icData.receivedData & (0x003F);
 	data |= (((icData.receivedData & (1<<12)) ? 0 : 1)<<6);
 	data |= (((icData.receivedData & (1<<11)) ? 1 : 0)<<7);
-	// Revisar rebote
-	
-	
-	ir_push(data);
+
+	if (icData.inputFlowControl.lastByte != data || icData.inputFlowControl.count == 0)
+	{
+		ir_push(data);
+		
+		icData.inputFlowControl.lastByte = data;
+		icData.inputFlowControl.count = 1;
+	}
+	else if (!isDigit(data))		// Si es un número nunca lo guardo más de una vez
+	{								// si hay un toggle entre dos números iguales entra al primer if.
+		if ((icData.inputFlowControl.count %= SAME_INPUT_SKIP) == 0)	// Si el dato es igual y estoy en múltiplo de SKIP
+			ir_push(data);												// guardo y subo. Nunca vuelvo a estar en 0.
+		
+		icData.inputFlowControl.count++;
+	}
 
 	resetTransmission();	
 
@@ -229,3 +254,25 @@ s16 ir_flush(void)
 	return cb_flush(&cBuffer);
 }
 
+
+s16 ir_getCommands(void)
+{
+	s16 auxByte;
+	u8 numCount = 0;
+	
+	while ((auxByte = ir_pop()) > 0)	// < 0 es un error de pop
+	{
+		if (isByte(auxByte))
+	}
+	
+}
+
+
+bool isDigit(u8 _byte)
+{
+	_byte &= ~(1<<7);
+	if (_byte >= 0 && _byte <= 9)
+		return _TRUE;
+	else
+		return _FALSE;
+}
