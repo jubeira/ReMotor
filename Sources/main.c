@@ -7,13 +7,15 @@
 #include <stdio.h>
 #include "mc9s12xdp512.h"
 #include "rtc.h"
+#include <stdlib.h>
 
 void init(void);
 
 void main(void)
-{
+{	
+	void *a;
 	init();
-
+	a = malloc(500);
 	for(;;)
 	{
 		s16 irData = ir_pop();

@@ -55,6 +55,7 @@ struct
 void rtc_startUp (void);
 void rtc_setRegAdd (u8 reg, rtc_ptr cb);
 void rtc_storeReceivedData (void);
+void rtc_sendLocalDataToDevice(rtc_ptr cb);
 void rtc_intSrv (void);
 void rtc_intAux (void);
 
@@ -67,6 +68,21 @@ void rtc_init (void)
 
 		tim_init();
 		rtc_intData.timId = tim_getTimer(TIM_IC,rtc_intSrv,NULL);
+		 //timer especifico //timer especifico
+		  //timer especifico
+		   //timer especifico
+
+ //timer especifico
+  //timer especifico
+
+ //timer especifico
+ //timer especifico
+ //timer especifico
+
+ //timer especifico
+ //timer especifico
+ //timer especifico
+ //timer especifico
 
 		rtc_intData.extCB = NULL;
 		
@@ -102,14 +118,14 @@ void rtc_startUp (void)
 	case 2:
 		// Guardo la informacion recibida, y configuro las settings (sin cambiar el resto de la data)
 		rtc_storeReceivedData();
-		rtc_setAllRegisters(rtc_startUp);
+		rtc_sendLocalDataToDevice(rtc_startUp);
 		rtc_intData.startUpStage++;
 
 		break;
 
 	case 3:
 		// Recien ahora esta inicializado al dispositivo, se habilitan las interrupciones por el clock del RTC
-		rtc_enable();			
+		rtc_enableAutoUpdate();			
 		
 		rtc_intData.init = _TRUE;
 		
@@ -119,9 +135,19 @@ void rtc_startUp (void)
 	return;
 }
 
+void rtc_assignAutoUpdateCallback (rtc_ptr rtc_cb)
+{
+	rtc_intData.extCB = rtc_cb;
+	
+	return;
+}
+
 
 void rtc_setRegAdd (u8 reg, rtc_ptr cb)
 {
+	if (IS_IIC_BUSY()) // dispatcher
+		return;
+	
 	iic_commData.data[0] = reg;
 	iic_commData.dataSize = 1;
 
@@ -160,10 +186,11 @@ void rtc_storeReceivedData (void)
 }
 
 
-void rtc_setInternalTime(decimal sec, decimal min, decimal h, decimal date, 
+void rtc_setTime(decimal sec, decimal min, decimal h, decimal date, 
 									decimal month, decimal year, rtc_day d)
 {
-	//check data in
+	rtc_disableAutoUpdate();
+
 	if (sec.deca <= 5 && sec.uni <= 9)
 		rtc_data.seconds = sec;
 	
@@ -183,18 +210,17 @@ void rtc_setInternalTime(decimal sec, decimal min, decimal h, decimal date,
     	rtc_data.year = year;
     
     rtc_data.day = d;
+   
+    rtc_sendLocalDataToDevice(NULL);
+    
+    if (rtc_intData.extCB != NULL)
+		(*rtc_intData.extCB)();
     
     return;
 }
 
 
-u8 decimal2u8(decimal d)
-{
-	return d.deca*10+d.uni;
-}
-
-
-void rtc_setAllRegisters (rtc_ptr cb)
+void rtc_sendLocalDataToDevice (rtc_ptr cb)
 {
 	// Registro inicial de escritura
 	iic_commData.data[0] = RTC_SEC_REG;
@@ -217,7 +243,7 @@ void rtc_setAllRegisters (rtc_ptr cb)
 }
 
 
-void rtc_enable (void)
+void rtc_enableAutoUpdate (void)
 {
 	tim_enableInterrupts(rtc_intData.timId);
 
@@ -225,7 +251,7 @@ void rtc_enable (void)
 }
 
 
-void rtc_disable (void)
+void rtc_disableAutoUpdate (void)
 {
 	tim_disableInterrupts(rtc_intData.timId);
 
@@ -246,4 +272,10 @@ void rtc_intAux (void)
 	iic_receive(RTC_ADDRESS,rtc_storeReceivedData,NULL,7);
 	
 	return;
+}
+
+
+u8 decimal2u8(decimal d)
+{
+	return d.deca*10+d.uni;
 }
