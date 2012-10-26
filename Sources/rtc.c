@@ -67,22 +67,7 @@ void rtc_init (void)
 		iic_init();
 
 		tim_init();
-		rtc_intData.timId = tim_getTimer(TIM_IC,rtc_intSrv,NULL);
-		 //timer especifico //timer especifico
-		  //timer especifico
-		   //timer especifico
-
- //timer especifico
-  //timer especifico
-
- //timer especifico
- //timer especifico
- //timer especifico
-
- //timer especifico
- //timer especifico
- //timer especifico
- //timer especifico
+		rtc_intData.timId = tim_getSpecificTimer(TIM_IC,rtc_intSrv,NULL,RTC_TIMER);
 
 		rtc_intData.extCB = NULL;
 		
@@ -98,28 +83,28 @@ void rtc_init (void)
 
 
 void rtc_startUp (void)
-{	
+{
 	switch (rtc_intData.startUpStage)
 	{
 	case 0:
 		// Preparo la lectura
-		rtc_setRegAdd(RTC_SEC_REG,rtc_startUp);
 		rtc_intData.startUpStage++;
+		rtc_setRegAdd(RTC_SEC_REG,rtc_startUp);
 
 		break;
 
 	case 1:
 		// Leo los 7 registros que contienen informacion de hora
-		iic_receive(RTC_ADDRESS,rtc_startUp,NULL, 7);
 		rtc_intData.startUpStage++;
+		iic_receive(RTC_ADDRESS,rtc_startUp,NULL, 7);
 
 		break;
 
 	case 2:
 		// Guardo la informacion recibida, y configuro las settings (sin cambiar el resto de la data)
+		rtc_intData.startUpStage++;
 		rtc_storeReceivedData();
 		rtc_sendLocalDataToDevice(rtc_startUp);
-		rtc_intData.startUpStage++;
 
 		break;
 
@@ -144,8 +129,8 @@ void rtc_assignAutoUpdateCallback (rtc_ptr rtc_cb)
 
 
 void rtc_setRegAdd (u8 reg, rtc_ptr cb)
-{
-	if (IS_IIC_BUSY()) // dispatcher
+{	
+	if (iic_isBusy()) // dispatcher
 		return;
 	
 	iic_commData.data[0] = reg;

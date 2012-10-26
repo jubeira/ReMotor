@@ -53,18 +53,6 @@ void ir_icSrv(void);
 void ir_ocSrv(void);
 void ir_ovfSrv(void);
 
-void store_1(void)
-{
-	icData.receivedData |= (1 << ((u8) (icData.currentBit)));
-	icData.currentBit--;
-}
-
-
-void store_0(void)
-{
-	icData.currentBit--;
-}
-
 
 void ir_init(void)
 {
@@ -75,7 +63,7 @@ void ir_init(void)
 	
 	tim_init();
 	
-	irTimers.icTimerId = tim_getTimer(TIM_IC, ir_icSrv, ir_ovfSrv);
+	irTimers.icTimerId = tim_getSpecificTimer(TIM_IC, ir_icSrv, ir_ovfSrv, IR_IC_TIMER);
 	irTimers.ocTimerId = tim_getTimer(TIM_OC, ir_ocSrv, NULL);
 	
 	tim_enableOvfInterrupts(irTimers.icTimerId);
@@ -208,6 +196,19 @@ void ir_ovfSrv(void)
 	icData.overflowCnt++;
 	
 	return;
+}
+
+
+void store_1(void)
+{
+	icData.receivedData |= (1 << ((u8) (icData.currentBit)));
+	icData.currentBit--;
+}
+
+
+void store_0(void)
+{
+	icData.currentBit--;
 }
 
 
