@@ -55,7 +55,8 @@ s8 tim_getSpecificTimer(tim_type reqType, tim_ptr cb, tim_ptr ovf, u8 timNumber)
 		return INVALID_TIMER;
 	
 	assignTimer(reqType, cb, ovf, timNumber);
-
+	
+	return timNumber;
 }
 
 
@@ -710,7 +711,6 @@ void interrupt tim7_srv(void)
 void interrupt timOvf_srv(void)
 {
 	u8 i;
-
 	TFLG2_TOF = 1;
 	
 	for (i = 0; i < TIM_AMOUNT; i++)

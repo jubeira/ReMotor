@@ -4,30 +4,46 @@
 #include "display.h"
 #include "kbd.h"
 #include "ir.h"
-#include <stdio.h>
-#include "mc9s12xdp512.h"
 #include "rtc.h"
-#include <stdlib.h>
+
 
 void init(void);
+void dispTime(void);
 
 void main(void)
 {	
-	void *a;
 	init();
-	a = malloc(500);
+	dispTime();
+	led(255);
+	rtc_assignAutoUpdateCallback(dispTime);
+	
 	for(;;)
 	{
-		s16 irData = ir_pop();
-		if (irData != IR_NO_COMMAND)
-			printf("%x\n",(u16)irData);
+		
 	}	
 }
+
+void dispTime(void)
+{
+	disp_ram[0] = rtc_data.minutes.deca+'0';
+	disp_ram[1] = rtc_data.minutes.uni+'0';
+	disp_ram[2] = rtc_data.seconds.deca+'0';
+	disp_ram[3] = rtc_data.seconds.uni+'0';
+	disp_att_ram[1].use_dot = 1;
+	
+	return;
+}
+
 
 void init (void)
 {
 	// Modulos que no requieren interrupciones para inicializar
-//	ir_init();
+	rti_init();
+	led_init();
+	display_init();
+
+	//kb_init();
+	//ir_init();
 
 	_asm cli;
 	// Modulos que si requieren interrupciones para inicializar	
@@ -39,6 +55,8 @@ void init (void)
  * Funciones de envÃo y recepci€n de datos por puerto serie.
  * Los accesos a los streams stdout, stdin, stderr entran y salen por ac∑
  * ********************************************************************** */
+#include "mc9s12xdp512.h"
+ 
 void TERMIO_PutChar(char ch) 
 {
     while (!(SCI0SR1 & SCI0SR1_TDRE_MASK));

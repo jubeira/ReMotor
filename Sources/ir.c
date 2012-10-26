@@ -22,7 +22,7 @@
 
 #define SAME_INPUT_SKIP (5)
 
-static struct 
+static struct
 {
 	u16 lastEdge;
 	u16 receivedData;
@@ -31,16 +31,16 @@ static struct
 	u8 overflowCnt;
 	bool icInhibit;
 	bool init;
-	
-	struct 
+
+	struct
 	{
 		u8 lastByte;
 		u8 count;
 	}inputFlowControl;
-	
+
 } icData = {0,0, 13, _FALSE, 0,_FALSE, _FALSE, {0,0}};
 
-static struct 
+static struct
 {
 	s8 icTimerId;
 	s8 ocTimerId;
@@ -62,25 +62,24 @@ void ir_icSrv(void);
 void ir_ocSrv(void);
 void ir_ovfSrv(void);
 
-
 void ir_init(void)
 {
-	if (icData.init == _TRUE) 
+	if (icData.init == _TRUE)
 		return;
-	
+
 	icData.init = _TRUE;
-	
+
 	tim_init();
-	
-	irTimers.icTimerId = tim_getTimer(TIM_IC, ir_icSrv, ir_ovfSrv);
+
+	irTimers.icTimerId = tim_getSpecificTimer(TIM_IC, ir_icSrv, ir_ovfSrv, IR_IC_TIMER);
 	irTimers.ocTimerId = tim_getTimer(TIM_OC, ir_ocSrv, NULL);
-	
+
 	tim_enableOvfInterrupts(irTimers.icTimerId);
-	
+
 	cBuffer = cb_create(irBuffer, BUFF_LENGTH);
-	
-	resetTransmission();	
-	
+
+	resetTransmission();
+
 	return;
 }
 
@@ -88,10 +87,10 @@ void ir_init(void)
 void resetTransmission(void)
 {
 	icData.transmitting = _FALSE;
-	
+
 	//Las interrupciones por OC solo están habilitadas durante una transmision
 	icData.icInhibit = _FALSE;
-	tim_enableInterrupts(irTimers.icTimerId); 
+	tim_enableInterrupts(irTimers.icTimerId);
 	tim_setFallingEdge(irTimers.icTimerId);
 	tim_disableInterrupts(irTimers.ocTimerId);
 }
@@ -100,20 +99,20 @@ void resetTransmission(void)
 void startTransmission(void)
 {
 	icData.transmitting = _TRUE;
-	
+
 	tim_setRisingEdge(irTimers.icTimerId);
-	
+
 	icData.currentBit = 14;
 	icData.receivedData = 0;
 	store_1();
-	
+
 	icData.lastEdge = tim_getValue(irTimers.icTimerId) - HBT_TIME;	// No pasa nada aunque HBT_TIME > TC1
-	
+
 	if (((s32) (tim_getValue(irTimers.icTimerId) - (s32)(HBT_TIME) )) >= 0)
 		icData.overflowCnt = 0;
 	else
 		icData.overflowCnt = 1;
-	
+
 	tim_enableInterrupts(irTimers.ocTimerId);
 }
 
@@ -127,7 +126,7 @@ void endTransmission(void)
 	if (icData.inputFlowControl.lastByte != data || icData.inputFlowControl.count == 0)
 	{
 		ir_push(data);
-		
+
 		icData.inputFlowControl.lastByte = data;
 		icData.inputFlowControl.count = 1;
 	}
@@ -135,33 +134,33 @@ void endTransmission(void)
 	{								// si hay un toggle entre dos números iguales entra al primer if.
 		if ((icData.inputFlowControl.count %= SAME_INPUT_SKIP) == 0)	// Si el dato es igual y estoy en múltiplo de SKIP
 			ir_push(data);												// guardo y subo. Nunca vuelvo a estar en 0.
-		
+
 		icData.inputFlowControl.count++;
 	}
 
-	resetTransmission();	
+	resetTransmission();
 
 	return;
 }
 
 
-void ir_icSrv(void) 
-{		
+void ir_icSrv(void)
+{
 	icData.icInhibit = _TRUE;
 	tim_disableInterrupts(irTimers.icTimerId);
-	
+
 	tim_clearFlag(irTimers.ocTimerId);
 	tim_setValue(irTimers.ocTimerId, tim_getValue(irTimers.icTimerId) + EDGE_TIME_MARGIN); //Margen por rise time lento
 
 	if (icData.transmitting == _FALSE)
-		startTransmission();	
+		startTransmission();
 	else
-	{	
+	{
 		u32 timeElapsed = (icData.overflowCnt * CNT_MAX + tim_getValue(irTimers.icTimerId)) - icData.lastEdge;
-		
+
 		icData.lastEdge = tim_getValue(irTimers.icTimerId);
 		icData.overflowCnt = 0;
-	
+
 		if ((timeElapsed >= HBT2_MIN) && (timeElapsed < HBT2_MAX))
 		{
 			if (PREVIOUS_BIT() == 1)
@@ -178,24 +177,24 @@ void ir_icSrv(void)
 				store_1();
 				store_0();
 			}
-		} 
+		}
 		else if ((timeElapsed >= HBT4_MIN) && (timeElapsed < HBT4_MAX) && (PREVIOUS_BIT() == 0))
 		{
 			store_1();
 			store_0();
-		} 
-		else 
-		    resetTransmission(); 
+		}
+		else
+		    resetTransmission();
 	}
-	
+
 	if (icData.currentBit == (-1))
 		endTransmission();
-	
+
 	return;
 }
 
 
-void ir_ocSrv(void) 
+void ir_ocSrv(void)
 {
     if (icData.icInhibit == _TRUE)
 	{
@@ -203,10 +202,10 @@ void ir_ocSrv(void)
 	    tim_clearFlag(irTimers.icTimerId);
 	    tim_enableInterrupts(irTimers.icTimerId);
 	    tim_setValue(irTimers.ocTimerId, (icData.lastEdge + RC5_TIMEOUT) - EDGE_TIME_MARGIN);
-    } 
+    }
     else
     	resetTransmission();
-	
+
     return;
 }
 
@@ -214,8 +213,21 @@ void ir_ocSrv(void)
 void ir_ovfSrv(void)
 {
 	icData.overflowCnt++;
-	
+
 	return;
+}
+
+
+void store_1(void)
+{
+	icData.receivedData |= (1 << ((u8) (icData.currentBit)));
+	icData.currentBit--;
+}
+
+
+void store_0(void)
+{
+	icData.currentBit--;
 }
 
 
@@ -236,15 +248,11 @@ s16 ir_flush(void)
 	return cb_flush(&cBuffer);
 }
 
-
-void store_1(void)
+bool isDigit(u8 _byte)
 {
-	icData.receivedData |= (1 << ((u8) (icData.currentBit)));
-	icData.currentBit--;
-}
-
-
-void store_0(void)
-{
-	icData.currentBit--;
+	_byte &= ~(1<<7);
+	if (_byte >= 0 && _byte <= 9)
+		return _TRUE;
+	else
+		return _FALSE;
 }

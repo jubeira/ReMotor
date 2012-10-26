@@ -2,14 +2,14 @@
 #include "mc9s12xdp512.h"
 
 #define IIC_START()	(IIC0_IBCR_MS_SL = 1)
-#define IIC_STOP() (IIC0_IBCR_MS_SL = 0)
+#define IIC_STOP() {IIC0_IBCR_MS_SL = 0; iic_data.stoppingBus = _TRUE;}
 #define IIC_SEND(a) (IIC0_IBDR = a)
 #define IIC_RECEIVE() (IIC0_IBDR)
-#define READ 0
-#define WRITE 1
+#define READ 1
+#define WRITE 0
 
 #define IIC_MODULE_ENABLE() (IIC0_IBCR_IBEN = 1)
-#define IIC_SET_BAUD() (IIC0_IBFD = 0x5F)
+#define IIC_SET_BAUD() (IIC0_IBFD = 0x5F) //80 kHz en SCL
 #define IIC_FLG_CLEAR() (IIC0_IBSR_IBIF = 1)
 #define IIC_INTERRUPT_ENABLE() (IIC0_IBCR_IBIE = 1)
 
@@ -28,19 +28,20 @@ struct {
     iic_ptr commFailedCB;
     u8 dataIdx;
     bool init;
-}iic_data = {NULL,NULL,NULL,0,_FALSE};
+    bool stoppingBus;
+}iic_data = {NULL,NULL,NULL,0,_FALSE,_FALSE};
 
 void iic_init (void);
 void iic_read (void);
 void iic_read_start (void);
 void iic_write (void);
-void interrupt iic0_srv (void);
 
 void iic_init (void)
 {
 	if (iic_data.init == _FALSE)
-	{
+	{	
 		iic_data.init = _TRUE;
+		iic_data.stoppingBus = _FALSE;
     	IIC_MODULE_ENABLE();
     	IIC_SET_BAUD();
     	IIC_FLG_CLEAR();
@@ -53,8 +54,10 @@ void iic_init (void)
 
 bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
 {
-    if (IS_IIC_BUSY())
-        return _FALSE;
+    if ((iic_isBusy()) && (iic_data.stoppingBus))
+    	while (iic_isBusy()); // Se espera a que se termine de liberar el bus     
+        	   
+	iic_data.stoppingBus = _FALSE;    
     
     iic_data.eotCB = eotCB;
     iic_data.commFailedCB = commFailedCB;
@@ -67,16 +70,18 @@ bool iic_send (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB)
     
     IIC_START();
     IIC_SEND((slvAddress << 1) + WRITE);
-    
+
     return _TRUE;
 }
 
 
 bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toRead)
 {
-	if (IS_IIC_BUSY())
-        return _FALSE;
-    
+	if ((iic_isBusy()) && (iic_data.stoppingBus))
+    	while (iic_isBusy()); // Se espera a que se termine de liberar el bus     
+        	   
+	iic_data.stoppingBus = _FALSE;    
+	
     iic_data.eotCB = eotCB;
     iic_data.commFailedCB = commFailedCB;
     iic_data.currCB = iic_read_start;
@@ -93,27 +98,36 @@ bool iic_receive (u8 slvAddress, iic_ptr eotCB, iic_ptr commFailedCB, u8 toRead)
 }
 
 
+bool iic_isBusy(void)
+{
+	if (IIC0_IBSR_IBB == 1)
+		return _TRUE;
+	else
+		return _FALSE;
+}
+
+
 void interrupt iic0_srv (void)
 {
-	// Falta revisar si se perdio el arbitraje
-	
     IIC_FLG_CLEAR();   
-    
+  
     // Deteccion de eot
     if (iic_data.currCB == iic_data.eotCB)
     {
-        IIC_STOP();
+        IIC_STOP();		
+       	 
     	if (IIC0_IBCR_TX_RX == 0)
     		iic_commData.data[iic_data.dataIdx] = IIC_RECEIVE();
     }
     
     // Deteccion de errores
-    if ((IIC0_IBSR_RXAK == 1) && (IIC0_IBCR_TX_RX == 1) || (IIC0_IBSR_IBAL == IIC_ARBITRATION_LOST))
+    if (((IIC0_IBSR_RXAK == 1) && (IIC0_IBCR_TX_RX == 1)) || (IIC0_IBSR_IBAL == IIC_ARBITRATION_LOST))
     {
 		IIC_STOP();
+		
     	iic_data.currCB = iic_data.commFailedCB;
     }
-     
+  
     if (iic_data.currCB != NULL)
     	(*iic_data.currCB)();
      
