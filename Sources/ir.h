@@ -13,5 +13,6 @@ s16 ir_push(u8 data);
 s16 ir_flush(void);
 s16 ir_pop(void);
 
+bool isDigit(u8 _byte);
 
 #endif

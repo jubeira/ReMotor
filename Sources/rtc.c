@@ -32,7 +32,7 @@
 #define RTC_RS1_1HZ 0
 #define RTC_RS1_SHIFT 1
 
-#define RTC_SEC_REG 0x00
+#define RTC_SEC_REG 0x00\
 #define RTC_MIN_REG 0x01
 #define RTC_HOUR_REG 0x02 
 #define RTC_DAY_REG 0x03

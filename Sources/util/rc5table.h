@@ -12,14 +12,15 @@ enum {
 	RC5_7,
 	RC5_8,
 	RC5_9,
-        RC5_VOL_UP = 16,
+    RC5_VOL_UP = 16,
 	RC5_VOL_DOWN,
 	RC5_CHANN_UP = 32,
 	RC5_CHANN_DOWN,
-        RC5_REW = 50,
+    RC5_REW = 50,
 	RC5_FF = 52,
 	RC5_PLAY,
-	RC5_STOP	
+	RC5_STOP
+		
 };
 
 #endif
