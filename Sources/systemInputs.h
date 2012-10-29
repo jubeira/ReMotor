@@ -35,7 +35,7 @@ extern const commandData_T commandData;
 #endif
 
 
-bool ir_getCommand(runMode mode);
+bool in_getCommand(runMode mode);
 
 
 #endif //_SYSTEM_INPUTS_H

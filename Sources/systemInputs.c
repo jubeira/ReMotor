@@ -5,8 +5,8 @@
 #include "rc5table.h"
 #include "kbd.h"
 
-#define KB_SHARP (KB_SPECIAL_R - '0')
-#define KB_ASTERISC (KB_SPECIAL_L - '0')
+#define KB_SHARP ((s16)(KB_SPECIAL_R - '0'))
+#define KB_ASTERISC ((s16)(KB_SPECIAL_L - '0'))
 
 commandData_T commandData = {0, 0, _FALSE};
 
@@ -16,7 +16,7 @@ void pwm_key2command(u8 key);
 
 u8 filterInt (s16 _byte);
 
-bool ir_getCommand(runMode mode)
+bool in_getCommand(runMode mode)
 {
 	s16 auxWord;
 	u8 filteredByte;
@@ -48,17 +48,17 @@ bool ir_getCommand(runMode mode)
 				{
 					step_key2command(filteredByte);
 					if (commandData.type = NO_COMMAND)
-						break;	// newCommand queda false
+						break;	// newCommand stays false
 						
 					newCommandFound = _TRUE;
 				}
 			}
 			break;
 		case PWM:
-			if ((auxWord = ir_pop()) < 0)
+			if ((auxWord = ir_pop()) < 0)	// if (pop error)
 			{
 				if ((auxWord = kb_read()) > 0)	// Check KB as second option
-					auxWord = auxWord - '0';
+					auxWord -= '0';
 				else
 					break;		// newCommand stays false.
 			}
@@ -84,7 +84,7 @@ void step_key2command(u8 key)
 	switch (key)
 	{	
 		case RC5_PLAY:
-			commandData.quantity = 0;
+			//commandData.quantity = 0;	use quantity as speed
 			commandData.type = RUN;
 			break;
 		case RC5_FF:
